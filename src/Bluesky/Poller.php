@@ -18,16 +18,17 @@ use WPIS\Bots\TextHelper;
 final class Poller {
 
 	/**
-	 * @return void
+	 * @param bool $force When true, run even if the bot is disabled (manual test from admin).
+	 * @return array<string, mixed>|null Summary stats for admin feedback, or null if the job did not run.
 	 */
-	public static function run(): void {
+	public static function run( bool $force = false ): ?array {
 		if ( ! function_exists( 'wpis_find_potential_duplicates' ) ) {
-			return;
+			return null;
 		}
 
 		$settings = Settings::get();
-		if ( empty( $settings['enabled'] ) ) {
-			return;
+		if ( ! $force && empty( $settings['enabled'] ) ) {
+			return null;
 		}
 
 		$service = BlueskyClient::normalize_service_url( (string) $settings['service_url'] );
@@ -51,7 +52,7 @@ final class Poller {
 		if ( is_wp_error( $jwt ) ) {
 			$stats['errors'][] = $jwt->get_error_message();
 			$logger->push( array_merge( $stats, array( 'source' => 'bluesky' ) ) );
-			return;
+			return array_merge( $stats, array( 'source' => 'bluesky' ) );
 		}
 
 		$query = trim( (string) $settings['search_query'] );
@@ -78,7 +79,7 @@ final class Poller {
 		if ( is_wp_error( $result ) ) {
 			$stats['errors'][] = $result->get_error_message();
 			$logger->push( array_merge( $stats, array( 'source' => 'bluesky' ) ) );
-			return;
+			return array_merge( $stats, array( 'source' => 'bluesky' ) );
 		}
 
 		$patterns = TextHelper::patterns_from_textarea( (string) $settings['keyword_patterns'] );
@@ -141,5 +142,6 @@ final class Poller {
 		Settings::set_state( array( 'cursor' => (string) $result['cursor'] ) );
 
 		$logger->push( array_merge( $stats, array( 'source' => 'bluesky' ) ) );
+		return array_merge( $stats, array( 'source' => 'bluesky' ) );
 	}
 }

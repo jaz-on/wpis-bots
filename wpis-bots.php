@@ -57,6 +57,7 @@ require_once WPIS_BOTS_LIB_DIR . '/ActionSchedulerBootstrap.php';
 
 require_once WPIS_BOTS_LIB_DIR . '/BotsAdminMenu.php';
 require_once WPIS_BOTS_LIB_DIR . '/CoreDependency.php';
+require_once WPIS_BOTS_LIB_DIR . '/RunLogsAdmin.php';
 require_once WPIS_BOTS_LIB_DIR . '/DocsLinks.php';
 require_once WPIS_BOTS_LIB_DIR . '/HttpRateContext.php';
 require_once WPIS_BOTS_LIB_DIR . '/TextHelper.php';

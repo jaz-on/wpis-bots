@@ -18,11 +18,18 @@ final class Admin {
 	private const SLUG = 'wpis-bot-mastodon';
 
 	/**
+	 * Transient key suffix for poll feedback (per user).
+	 */
+	private const POLL_NOTICE_TRANSIENT = 'wpis_bot_mastodon_poll_notice';
+
+	/**
 	 * @return void
 	 */
 	public static function register(): void {
 		add_action( 'admin_init', array( self::class, 'register_settings' ) );
 		add_action( 'admin_notices', array( self::class, 'notice_action_scheduler' ) );
+		add_action( 'admin_notices', array( self::class, 'render_admin_notices' ) );
+		add_action( 'admin_post_wpis_bot_mastodon_poll_now', array( self::class, 'handle_poll_now' ) );
 	}
 
 	/**
@@ -38,8 +45,7 @@ final class Admin {
 		if ( class_exists( 'ActionScheduler_Versions', false ) ) {
 			return;
 		}
-		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-		if ( ! $screen || 'toplevel_page_' . self::SLUG !== $screen->id ) {
+		if ( ! \WPIS\Bots\BotsAdminMenu::is_plugin_admin_screen() ) {
 			return;
 		}
 		echo '<div class="notice notice-warning"><p>';
@@ -105,6 +111,141 @@ final class Admin {
 	}
 
 	/**
+	 * Runs one poll immediately (admin test; uses saved credentials even if bot is off).
+	 *
+	 * @return void
+	 */
+	public static function handle_poll_now(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Sorry, you are not allowed to do this.', 'wpis-bot-mastodon' ), '', array( 'response' => 403 ) );
+		}
+		check_admin_referer( 'wpis_bot_mastodon_poll_now' );
+
+		$redirect   = admin_url( 'admin.php?page=' . self::SLUG );
+		$notice_key = self::POLL_NOTICE_TRANSIENT . '_' . get_current_user_id();
+
+		if ( ! function_exists( 'wpis_find_potential_duplicates' ) ) {
+			set_transient(
+				$notice_key,
+				array(
+					'type'   => 'skip',
+					'reason' => 'core',
+				),
+				60
+			);
+			wp_safe_redirect( $redirect );
+			exit;
+		}
+
+		$stats = Poller::run( true );
+		if ( null === $stats ) {
+			set_transient(
+				$notice_key,
+				array(
+					'type'   => 'skip',
+					'reason' => 'noop',
+				),
+				60
+			);
+			wp_safe_redirect( $redirect );
+			exit;
+		}
+
+		$errors = isset( $stats['errors'] ) && is_array( $stats['errors'] ) ? $stats['errors'] : array();
+		$errors = array_filter( array_map( 'strval', $errors ) );
+
+		if ( array() !== $errors ) {
+			set_transient(
+				$notice_key,
+				array(
+					'type'   => 'error',
+					'errors' => $errors,
+					'stats'  => $stats,
+				),
+				60
+			);
+			wp_safe_redirect( $redirect );
+			exit;
+		}
+
+		set_transient(
+			$notice_key,
+			array(
+				'type'  => 'ok',
+				'stats' => $stats,
+			),
+			60
+		);
+		wp_safe_redirect( $redirect );
+		exit;
+	}
+
+	/**
+	 * Settings saved and manual poll result notices.
+	 *
+	 * @return void
+	 */
+	public static function render_admin_notices(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only query args from admin redirects.
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+		if ( self::SLUG !== $page ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- flag appended by options.php after a successful save.
+		if ( ! empty( $_GET['settings-updated'] ) ) {
+			echo '<div class="notice notice-success is-dismissible"><p>';
+			echo esc_html__( 'Settings saved.', 'wpis-bot-mastodon' );
+			echo ' ';
+			echo esc_html__( 'Use "Run poll now" below to confirm your instance URL and token work.', 'wpis-bot-mastodon' );
+			echo '</p></div>';
+		}
+
+		$notice_key = self::POLL_NOTICE_TRANSIENT . '_' . get_current_user_id();
+		$data       = get_transient( $notice_key );
+		if ( false !== $data && is_array( $data ) ) {
+			delete_transient( $notice_key );
+			$type = isset( $data['type'] ) ? (string) $data['type'] : '';
+			if ( 'ok' === $type && isset( $data['stats'] ) && is_array( $data['stats'] ) ) {
+				$st = $data['stats'];
+				echo '<div class="notice notice-success is-dismissible"><p>';
+				echo esc_html__( 'Poll finished successfully.', 'wpis-bot-mastodon' );
+				echo ' ';
+				printf(
+					/* translators: 1: candidates count, 2: created, 3: bumped */
+					esc_html__( 'Candidates: %1$d, created: %2$d and bumped: %3$d.', 'wpis-bot-mastodon' ),
+					(int) ( $st['candidates'] ?? 0 ),
+					(int) ( $st['created'] ?? 0 ),
+					(int) ( $st['bumped'] ?? 0 )
+				);
+				echo '</p></div>';
+				return;
+			}
+			if ( 'error' === $type && ! empty( $data['errors'] ) && is_array( $data['errors'] ) ) {
+				echo '<div class="notice notice-error is-dismissible"><p>';
+				echo esc_html__( 'Poll failed:', 'wpis-bot-mastodon' );
+				echo ' ';
+				echo esc_html( implode( '; ', array_map( 'sanitize_text_field', $data['errors'] ) ) );
+				echo '</p></div>';
+				return;
+			}
+			if ( 'skip' === $type ) {
+				$reason = isset( $data['reason'] ) ? (string) $data['reason'] : '';
+				echo '<div class="notice notice-warning is-dismissible"><p>';
+				if ( 'core' === $reason ) {
+					echo esc_html__( 'Poll did not run: WPIS Core is not available.', 'wpis-bot-mastodon' );
+				} else {
+					echo esc_html__( 'Poll did not run (nothing to do).', 'wpis-bot-mastodon' );
+				}
+				echo '</p></div>';
+			}
+		}
+	}
+
+	/**
 	 * @return void
 	 */
 	public static function render_page(): void {
@@ -122,6 +263,7 @@ final class Admin {
 		if ( ! is_array( $log ) ) {
 			$log = array();
 		}
+		$last = array() !== $log && isset( $log[0] ) && is_array( $log[0] ) ? $log[0] : null;
 
 		DocsLinks::render_mastodon_intro();
 		echo '<form method="post" action="options.php">';
@@ -200,34 +342,27 @@ final class Admin {
 		submit_button();
 		echo '</form>';
 
-		echo '<h2>' . esc_html__( 'Recent runs', 'wpis-bot-mastodon' ) . '</h2>';
-		echo '<table class="widefat striped"><thead><tr>';
-		echo '<th>' . esc_html__( 'Time', 'wpis-bot-mastodon' ) . '</th>';
-		echo '<th>' . esc_html__( 'Candidates', 'wpis-bot-mastodon' ) . '</th>';
-		echo '<th>' . esc_html__( 'Created', 'wpis-bot-mastodon' ) . '</th>';
-		echo '<th>' . esc_html__( 'Bumped', 'wpis-bot-mastodon' ) . '</th>';
-		echo '<th>' . esc_html__( 'Skipped (keyword / seen)', 'wpis-bot-mastodon' ) . '</th>';
-		echo '<th>' . esc_html__( 'Errors', 'wpis-bot-mastodon' ) . '</th>';
-		echo '</tr></thead><tbody>';
-		foreach ( $log as $row ) {
-			if ( ! is_array( $row ) ) {
-				continue;
-			}
-			$at = isset( $row['at'] ) ? gmdate( 'Y-m-d H:i:s', (int) $row['at'] ) . ' UTC' : '—';
-			$sk = (int) ( $row['skipped_keyword'] ?? 0 ) + (int) ( $row['skipped_seen'] ?? 0 );
-			$er = isset( $row['errors'] ) && is_array( $row['errors'] ) ? implode( '; ', array_map( 'sanitize_text_field', $row['errors'] ) ) : '';
-			echo '<tr>';
-			echo '<td>' . esc_html( $at ) . '</td>';
-			echo '<td>' . (int) ( $row['candidates'] ?? 0 ) . '</td>';
-			echo '<td>' . (int) ( $row['created'] ?? 0 ) . '</td>';
-			echo '<td>' . (int) ( $row['bumped'] ?? 0 ) . '</td>';
-			echo '<td>' . (int) $sk . '</td>';
-			echo '<td>' . esc_html( $er ) . '</td>';
-			echo '</tr>';
+		echo '<h2>' . esc_html__( 'Manual poll', 'wpis-bot-mastodon' ) . '</h2>';
+		echo '<p>' . esc_html__( 'Runs one fetch using the saved settings, even if the bot is disabled. Use this to verify credentials before enabling the schedule.', 'wpis-bot-mastodon' ) . '</p>';
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+		wp_nonce_field( 'wpis_bot_mastodon_poll_now' );
+		echo '<input type="hidden" name="action" value="wpis_bot_mastodon_poll_now" />';
+		submit_button( __( 'Run poll now', 'wpis-bot-mastodon' ), 'secondary', 'submit', false );
+		echo '</form>';
+
+		if ( $last ) {
+			$at_last = isset( $last['at'] ) ? gmdate( 'Y-m-d H:i:s', (int) $last['at'] ) . ' UTC' : '—';
+			echo '<p class="description">';
+			printf(
+				/* translators: 1: UTC datetime of last run */
+				esc_html__( 'Last logged run: %1$s (see Run logs for full history).', 'wpis-bot-mastodon' ),
+				esc_html( $at_last )
+			);
+			echo '</p>';
 		}
-		if ( array() === $log ) {
-			echo '<tr><td colspan="6">' . esc_html__( 'No runs yet.', 'wpis-bot-mastodon' ) . '</td></tr>';
-		}
-		echo '</tbody></table></div>';
+
+		$logs_url = admin_url( 'admin.php?page=wpis-bots-logs' );
+		echo '<p><a href="' . esc_url( $logs_url ) . '">' . esc_html__( 'View all run logs', 'wpis-bot-mastodon' ) . '</a></p>';
+		echo '</div>';
 	}
 }

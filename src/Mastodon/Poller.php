@@ -18,16 +18,17 @@ use WPIS\Bots\TextHelper;
 final class Poller {
 
 	/**
-	 * @return void
+	 * @param bool $force When true, run even if the bot is disabled (manual test from admin).
+	 * @return array<string, mixed>|null Summary stats for admin feedback, or null if the job did not run.
 	 */
-	public static function run(): void {
+	public static function run( bool $force = false ): ?array {
 		if ( ! function_exists( 'wpis_find_potential_duplicates' ) ) {
-			return;
+			return null;
 		}
 
 		$settings = Settings::get();
-		if ( empty( $settings['enabled'] ) ) {
-			return;
+		if ( ! $force && empty( $settings['enabled'] ) ) {
+			return null;
 		}
 
 		$instance = MastodonClient::normalize_instance_url( (string) $settings['instance_url'] );
@@ -58,7 +59,7 @@ final class Poller {
 		if ( is_wp_error( $items ) ) {
 			$stats['errors'][] = $items->get_error_message();
 			$logger->push( array_merge( $stats, array( 'source' => 'mastodon' ) ) );
-			return;
+			return array_merge( $stats, array( 'source' => 'mastodon' ) );
 		}
 
 		$patterns = TextHelper::patterns_from_textarea( (string) $settings['keyword_patterns'] );
@@ -136,5 +137,6 @@ final class Poller {
 		}
 
 		$logger->push( array_merge( $stats, array( 'source' => 'mastodon' ) ) );
+		return array_merge( $stats, array( 'source' => 'mastodon' ) );
 	}
 }

@@ -33,6 +33,27 @@ final class BotsAdminMenu {
 	/**
 	 * @return void
 	 */
+	/**
+	 * Whether the current admin screen belongs to this plugin (any submenu).
+	 *
+	 * @return bool
+	 */
+	public static function is_plugin_admin_screen(): bool {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen ) {
+			return false;
+		}
+		$allowed = array(
+			'toplevel_page_wpis-bot-mastodon',
+			'wpis-bot-mastodon_page_wpis-bot-bluesky',
+			'wpis-bot-mastodon_page_wpis-bots-logs',
+		);
+		return in_array( $screen->id, $allowed, true );
+	}
+
+	/**
+	 * @return void
+	 */
 	public static function add_menus(): void {
 		add_menu_page(
 			__( 'WPIS Bots', 'wpis-bots' ),
@@ -58,6 +79,14 @@ final class BotsAdminMenu {
 			'manage_options',
 			'wpis-bot-bluesky',
 			array( \WPIS\BotBluesky\Admin::class, 'render_page' )
+		);
+		add_submenu_page(
+			'wpis-bot-mastodon',
+			__( 'Run logs', 'wpis-bots' ),
+			__( 'Run logs', 'wpis-bots' ),
+			'manage_options',
+			'wpis-bots-logs',
+			array( RunLogsAdmin::class, 'render' )
 		);
 	}
 }
