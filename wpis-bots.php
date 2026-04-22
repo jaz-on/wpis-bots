@@ -10,7 +10,7 @@
  * Text Domain: wpis-bots
  * Requires at least: 6.9
  * Requires PHP: 8.2
- * Requires Plugins: wpis-plugin
+ * Requires Plugins: wpis-plugin, action-scheduler
  * GitHub Plugin URI: https://github.com/jaz-on/wpis-bots
  * Primary Branch: main
  *
@@ -52,8 +52,8 @@ if ( ! defined( 'WPIS_BOTS_LIB_DIR' ) ) {
 	define( 'WPIS_BOTS_LIB_DIR', WPIS_BOTS_DIR . '/lib' );
 }
 
-require_once WPIS_BOTS_LIB_DIR . '/ActionSchedulerBootstrap.php';
-\WPIS\Bots\ActionSchedulerBootstrap::load();
+require_once WPIS_BOTS_LIB_DIR . '/autoload-runtime.php';
+wpis_bots_load_autoloader();
 
 require_once WPIS_BOTS_LIB_DIR . '/BotsAdminMenu.php';
 require_once WPIS_BOTS_LIB_DIR . '/CoreDependency.php';
@@ -64,10 +64,6 @@ require_once WPIS_BOTS_LIB_DIR . '/TextHelper.php';
 require_once WPIS_BOTS_LIB_DIR . '/ProcessedRemoteIds.php';
 require_once WPIS_BOTS_LIB_DIR . '/RunLogger.php';
 require_once WPIS_BOTS_LIB_DIR . '/QuoteIngest.php';
-
-if ( is_readable( WPIS_BOTS_DIR . '/vendor/autoload.php' ) ) {
-	require_once WPIS_BOTS_DIR . '/vendor/autoload.php';
-}
 
 add_filter( 'cron_schedules', array( \WPIS\BotMastodon\Scheduler::class, 'add_cron_schedules' ) );
 add_filter( 'cron_schedules', array( \WPIS\BotBluesky\Scheduler::class, 'add_cron_schedules' ) );
@@ -96,30 +92,13 @@ register_deactivation_hook(
 	}
 );
 
-if ( ! class_exists( '\WPIS\BotMastodon\Plugin', true ) || ! class_exists( '\WPIS\BotBluesky\Plugin', true ) ) {
-	add_action(
-		'admin_notices',
-		static function () {
-			if ( ! current_user_can( 'manage_options' ) ) {
-				return;
-			}
-			echo '<div class="notice notice-error"><p>';
-			esc_html_e(
-				'WPIS Bots: vendor/autoload.php is missing or incomplete. Reinstall the plugin from a full GitHub ZIP or run composer install in the plugin directory.',
-				'wpis-bots'
-			);
-			echo '</p></div>';
-		}
-	);
-} else {
-	// Sidebar menu must register even if WPIS Core loads later — see Plugin::bootstrap().
-	add_action(
-		'plugins_loaded',
-		static function () {
-			\WPIS\Bots\BotsAdminMenu::register();
-		},
-		1
-	);
-	( new \WPIS\BotMastodon\Plugin() )->register();
-	( new \WPIS\BotBluesky\Plugin() )->register();
-}
+// Sidebar menu must register even if WPIS Core loads later — see Plugin::bootstrap().
+add_action(
+	'plugins_loaded',
+	static function () {
+		\WPIS\Bots\BotsAdminMenu::register();
+	},
+	1
+);
+( new \WPIS\BotMastodon\Plugin() )->register();
+( new \WPIS\BotBluesky\Plugin() )->register();

@@ -5,8 +5,7 @@
 	"version": "0.1.0",
 	"license": "GPL-2.0-or-later",
 	"require": {
-		"php": "^8.2",
-		"woocommerce/action-scheduler": "^3.9"
+		"php": "^8.2"
 	},
 	"require-dev": {
 		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",

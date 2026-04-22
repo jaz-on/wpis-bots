@@ -13,19 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.2"
-          tools: composer:v2
-
-      - name: Install production dependencies
-        run: composer install --no-dev --no-interaction --optimize-autoloader
-
       - name: Create archive
         run: |
           mkdir -p build/wpis-bots
           cp wpis-bots.php composer.json composer.lock build/wpis-bots/
-          cp -r lib src vendor build/wpis-bots/
+          cp -r lib src build/wpis-bots/
           ( cd build && zip -r ../wpis-bots.zip wpis-bots )
 
       - name: Upload release asset

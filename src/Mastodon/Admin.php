@@ -50,7 +50,7 @@ final class Admin {
 		}
 		echo '<div class="notice notice-warning"><p>';
 		echo esc_html__(
-			'Action Scheduler is not available. From the wpis-bots package run composer install (see vendor/woocommerce/action-scheduler), install the Action Scheduler plugin, or the site will fall back to WP-Cron.',
+			'Action Scheduler is not available. Install and activate the Action Scheduler plugin (or rely on WP-Cron, which is less reliable on low traffic sites).',
 			'wpis-bot-mastodon'
 		);
 		echo '</p></div>';

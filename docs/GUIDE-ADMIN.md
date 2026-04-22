@@ -32,7 +32,7 @@ Ces comptes servent de **référence** (profil, transparence). Le site WordPress
 
 1. **Le plugin principal « WordPress Is… Core »** (`wpis-plugin`) doit être installé et actif.
 2. Il est recommandé d’avoir **déjà du contenu validé** sur le site (citations modérées). Cela aide le système à repérer les doublons et à garder une base saine.
-3. **Planification** : l’extension embarque Action Scheduler dans `vendor/` (fourni dans le zip GitHub / le dépôt). Sans ce dossier, installez l’extension **Action Scheduler** à la place ; sinon le site utilisera la planification WordPress classique, un peu moins fiable sur les petits sites peu visités.
+3. **Planification** : installez l’extension [**Action Scheduler**](https://fr.wordpress.org/plugins/action-scheduler/) (requis aux côtés de WordPress Is… Core). WordPress 6.5+ peut l’indiquer comme dépendance de WPIS Bots. Sans Action Scheduler, le site retombe sur le cron WordPress, un peu moins fiable sur les petits sites peu visités.
 
 ## Mastodon — réglages simples
 
