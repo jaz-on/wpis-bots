@@ -14,6 +14,8 @@ final class Scheduler {
 
 	public const HOOK = 'wpis_bot_bluesky_poll';
 
+	public const HOOK_BACKFILL = 'wpis_bot_bluesky_backfill';
+
 	public const GROUP = 'wpis-bots';
 
 	/**
@@ -21,7 +23,29 @@ final class Scheduler {
 	 */
 	public static function register_hooks(): void {
 		add_action( self::HOOK, array( Poller::class, 'run' ) );
+		add_action( self::HOOK_BACKFILL, array( Poller::class, 'run_backfill' ) );
 		add_action( 'update_option_' . Settings::OPTION, array( self::class, 'on_settings_update' ), 10, 3 );
+		add_action( 'init', array( self::class, 'ensure_scheduled' ), 20 );
+	}
+
+	/**
+	 * @return void
+	 */
+	public static function ensure_scheduled(): void {
+		$s = Settings::get();
+		if ( empty( $s['enabled'] ) ) {
+			return;
+		}
+		if ( function_exists( 'as_next_scheduled_action' ) && false === as_next_scheduled_action( self::HOOK, array(), self::GROUP ) ) {
+			self::reschedule();
+		} elseif ( ! function_exists( 'as_schedule_recurring_action' ) && ! wp_next_scheduled( self::HOOK ) ) {
+			self::reschedule();
+		}
+		if ( ! empty( $s['backfill_enabled'] ) && function_exists( 'as_next_scheduled_action' ) && false === as_next_scheduled_action( self::HOOK_BACKFILL, array(), self::GROUP ) ) {
+			self::reschedule();
+		} elseif ( ! empty( $s['backfill_enabled'] ) && ! function_exists( 'as_schedule_recurring_action' ) && ! wp_next_scheduled( self::HOOK_BACKFILL ) ) {
+			self::reschedule();
+		}
 	}
 
 	/**
@@ -43,13 +67,20 @@ final class Scheduler {
 	 * @return array<string, array{interval: int, display: string}>
 	 */
 	public static function add_cron_schedules( array $schedules ): array {
-		$mins              = (int) Settings::get()['poll_interval_minutes'];
-		$mins              = max( Settings::MIN_POLL_INTERVAL_MINUTES, min( 120, $mins ) );
-		$key               = 'wpis_bot_bluesky_every_' . $mins . '_min';
+		$s   = Settings::get();
+		$mins = max( Settings::MIN_POLL_INTERVAL_MINUTES, min( 120, (int) $s['poll_interval_minutes'] ) );
+		$key  = 'wpis_bot_bluesky_every_' . $mins . '_min';
 		$schedules[ $key ] = array(
 			'interval' => $mins * MINUTE_IN_SECONDS,
 			/* translators: %d: minutes */
 			'display'  => sprintf( __( 'Every %d minutes (WPIS Bluesky)', 'wpis-bot-bluesky' ), $mins ),
+		);
+		$bfm = max( Settings::MIN_BACKFILL_INTERVAL_MINUTES, min( 24 * 60, (int) $s['backfill_interval_minutes'] ) );
+		$bfk = 'wpis_bot_bluesky_backfill_every_' . $bfm . '_min';
+		$schedules[ $bfk ] = array(
+			'interval' => $bfm * MINUTE_IN_SECONDS,
+			/* translators: %d: minutes */
+			'display'  => sprintf( __( 'Every %d minutes (WPIS Bluesky backfill)', 'wpis-bot-bluesky' ), $bfm ),
 		);
 		return $schedules;
 	}
@@ -70,11 +101,20 @@ final class Scheduler {
 
 		if ( function_exists( 'as_schedule_recurring_action' ) ) {
 			as_schedule_recurring_action( time(), $interval, self::HOOK, array(), self::GROUP );
-			return;
+		} elseif ( ! wp_next_scheduled( self::HOOK ) ) {
+			wp_schedule_event( time() + 60, $cron_name, self::HOOK );
 		}
 
-		if ( ! wp_next_scheduled( self::HOOK ) ) {
-			wp_schedule_event( time() + 60, $cron_name, self::HOOK );
+		if ( empty( $s['backfill_enabled'] ) ) {
+			return;
+		}
+		$bfm  = max( Settings::MIN_BACKFILL_INTERVAL_MINUTES, min( 24 * 60, (int) $s['backfill_interval_minutes'] ) );
+		$bfi  = $bfm * MINUTE_IN_SECONDS;
+		$bfcn = 'wpis_bot_bluesky_backfill_every_' . $bfm . '_min';
+		if ( function_exists( 'as_schedule_recurring_action' ) ) {
+			as_schedule_recurring_action( time() + 300, $bfi, self::HOOK_BACKFILL, array(), self::GROUP );
+		} elseif ( ! wp_next_scheduled( self::HOOK_BACKFILL ) ) {
+			wp_schedule_event( time() + 300, $bfcn, self::HOOK_BACKFILL );
 		}
 	}
 
@@ -84,8 +124,10 @@ final class Scheduler {
 	public static function clear_all(): void {
 		if ( function_exists( 'as_unschedule_all_actions' ) ) {
 			as_unschedule_all_actions( self::HOOK, array(), self::GROUP );
+			as_unschedule_all_actions( self::HOOK_BACKFILL, array(), self::GROUP );
 		}
 		wp_clear_scheduled_hook( self::HOOK );
+		wp_clear_scheduled_hook( self::HOOK_BACKFILL );
 	}
 
 	/**

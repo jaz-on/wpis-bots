@@ -17,11 +17,31 @@ final class MastodonClient {
 	private const USER_AGENT_PRODUCT = 'WPIS-Bot-Mastodon/0.1';
 
 	/**
+	 * Stable id for the seen-ids store (avoids cross-instance id collisions).
+	 *
+	 * @param string $instance_base Normalized instance base URL.
+	 * @param string $id            Mastodon status id.
+	 * @return string
+	 */
+	public static function stable_post_key( string $instance_base, string $id ): string {
+		$base = self::normalize_instance_url( $instance_base );
+		$parts = wp_parse_url( $base );
+		$host  = ( is_array( $parts ) && ! empty( $parts['host'] ) ) ? (string) $parts['host'] : 'unknown';
+		if ( is_array( $parts ) && ! empty( $parts['port'] ) ) {
+			$host .= ':' . (int) $parts['port'];
+		}
+		return $host . '|' . trim( $id );
+	}
+
+	/**
+	 * Fetches a tag timeline. Use `since_id` for newer posts (live) or `max_id` for older (backfill), not both.
+	 *
 	 * @param string $instance_base Normalized base URL (no trailing slash).
 	 * @param string $hashtag       Without leading #.
-	 * @param string $since_id      Optional snowflake id.
+	 * @param string $since_id      Optional: only statuses newer than this id.
 	 * @param string $access_token  Optional bearer token.
 	 * @param int    $limit         Max statuses (max 40 typical).
+	 * @param string $max_id        Optional: only statuses older than this id (backfill pagination).
 	 * @return array<int, array{id: string, text: string, url: string}>|\WP_Error
 	 */
 	public static function fetch_tag_timeline(
@@ -29,7 +49,8 @@ final class MastodonClient {
 		string $hashtag,
 		string $since_id = '',
 		string $access_token = '',
-		int $limit = 40
+		int $limit = 40,
+		string $max_id = ''
 	) {
 		$hashtag = ltrim( trim( $hashtag ), '#' );
 		if ( '' === $hashtag ) {
@@ -44,7 +65,9 @@ final class MastodonClient {
 			),
 			$url
 		);
-		if ( '' !== $since_id ) {
+		if ( '' !== $max_id ) {
+			$url = add_query_arg( 'max_id', $max_id, $url );
+		} elseif ( '' !== $since_id ) {
 			$url = add_query_arg( 'since_id', $since_id, $url );
 		}
 

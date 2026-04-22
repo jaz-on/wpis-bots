@@ -20,7 +20,7 @@ final class Poller {
 
 	/**
 	 * @param bool $force When true, run even if the bot is disabled (manual test from admin).
-	 * @param bool $dry_run When true, fetch and count only; no drafts, seen IDs or since_id updates.
+	 * @param bool $dry_run When true, fetch and count only; no drafts, seen IDs or state updates.
 	 * @return array<string, mixed>|null Summary stats for admin feedback, or null if the job did not run.
 	 */
 	public static function run( bool $force = false, bool $dry_run = false ): ?array {
@@ -33,43 +33,75 @@ final class Poller {
 			return null;
 		}
 
-		$instance = MastodonClient::normalize_instance_url( (string) $settings['instance_url'] );
-		$state    = Settings::get_state();
-		$since    = $state['since_id'];
+		$bases  = Settings::get_instance_bases();
+		$state  = Settings::get_state();
+		$since_map = $state['since_by_instance'];
+		$token  = (string) $settings['access_token'];
+		$hashtag = (string) $settings['hashtag'];
 
 		$logger = new RunLogger( Settings::LOG_OPTION );
 		$seen   = new ProcessedRemoteIds( Settings::SEEN_OPTION );
-		$stats  = array(
-			'candidates'       => 0,
+		$stats  = self::base_stats( $dry_run );
+
+		$update_since = $since_map;
+
+		foreach ( $bases as $base ) {
+			$since = $since_map[ $base ] ?? '';
+			$items = MastodonClient::fetch_tag_timeline( $base, $hashtag, $since, $token, 40, '' );
+			if ( is_wp_error( $items ) ) {
+				$stats['errors'][] = $base . ': ' . $items->get_error_message();
+				continue;
+			}
+
+			$batch = self::ingest_batch( $items, $settings, $seen, $base, $dry_run, $stats );
+			$stats = $batch['stats'];
+			$high  = $batch['highest_id'];
+
+			if ( ! $dry_run && '' !== $high && ( '' === $since || strcmp( $high, $since ) > 0 ) ) {
+				$update_since[ $base ] = $high;
+			}
+		}
+
+		if ( ! $dry_run ) {
+			Settings::set_state( array( 'since_by_instance' => $update_since ) );
+			$logger->push( array_merge( $stats, array( 'source' => 'mastodon' ) ) );
+		}
+
+		return array_merge( $stats, array( 'source' => 'mastodon' ) );
+	}
+
+	/**
+	 * @param bool $dry_run Dry run flag.
+	 * @return array<string, mixed>
+	 */
+	public static function base_stats( bool $dry_run ): array {
+		$stats = array(
+			'candidates'        => 0,
 			'created'          => 0,
-			'bumped'           => 0,
+			'bumped'            => 0,
 			'skipped_keyword'  => 0,
 			'skipped_seen'     => 0,
 			'skipped_empty'    => 0,
 			'skipped_too_long' => 0,
-			'errors'           => array(),
+			'errors'            => array(),
 		);
 		if ( $dry_run ) {
-			$stats['dry_run']       = true;
-			$stats['would_process'] = 0;
+			$stats['dry_run']        = true;
+			$stats['would_process']  = 0;
 		}
+		return $stats;
+	}
 
-		$items = MastodonClient::fetch_tag_timeline(
-			$instance,
-			(string) $settings['hashtag'],
-			$since,
-			(string) $settings['access_token'],
-			40
-		);
-
-		if ( is_wp_error( $items ) ) {
-			$stats['errors'][] = $items->get_error_message();
-			if ( ! $dry_run ) {
-				$logger->push( array_merge( $stats, array( 'source' => 'mastodon' ) ) );
-			}
-			return array_merge( $stats, array( 'source' => 'mastodon' ) );
-		}
-
+	/**
+	 * Process rows from a tag timeline. Stats are merged in place; uses composite post keys per instance.
+	 *
+	 * @param array<int, array{id: string, text: string, url: string}> $items
+	 * @param array<string, mixed>                                   $settings
+	 * @param string                                                 $instance_base
+	 * @param array<string, mixed>                                   $stats
+	 * @return array{stats: array<string, mixed>, highest_id: string, lowest_id: string}
+	 */
+	public static function ingest_batch( array $items, array $settings, ProcessedRemoteIds $seen, string $instance_base, bool $dry_run, array $stats ): array {
 		$patterns = TextHelper::patterns_from_textarea( (string) $settings['keyword_patterns'] );
 
 		usort(
@@ -79,16 +111,24 @@ final class Poller {
 			}
 		);
 
-		$max_id = $since;
+		$highest = '';
+		$lowest  = '';
+		foreach ( $items as $row ) {
+			$rid = (string) $row['id'];
+			if ( '' === $highest || strcmp( $rid, $highest ) > 0 ) {
+				$highest = $rid;
+			}
+			if ( '' === $lowest || strcmp( $rid, $lowest ) < 0 ) {
+				$lowest = $rid;
+			}
+		}
 
 		foreach ( $items as $row ) {
+			$rid    = (string) $row['id'];
+			$ridkey = MastodonClient::stable_post_key( $instance_base, $rid );
 			++$stats['candidates'];
-			$rid = (string) $row['id'];
-			if ( $seen->has_seen( $rid ) ) {
+			if ( $seen->has_seen( $ridkey ) ) {
 				++$stats['skipped_seen'];
-				if ( '' === $max_id || strcmp( $rid, $max_id ) > 0 ) {
-					$max_id = $rid;
-				}
 				continue;
 			}
 
@@ -96,35 +136,29 @@ final class Poller {
 			if ( ! TextHelper::matches_any_pattern( $text, $patterns ) ) {
 				++$stats['skipped_keyword'];
 				if ( ! $dry_run ) {
-					$seen->remember( $rid );
-				}
-				if ( '' === $max_id || strcmp( $rid, $max_id ) > 0 ) {
-					$max_id = $rid;
+					$seen->remember( $ridkey );
 				}
 				continue;
 			}
 
 			if ( $dry_run ) {
 				++$stats['would_process'];
-				if ( '' === $max_id || strcmp( $rid, $max_id ) > 0 ) {
-					$max_id = $rid;
-				}
 				continue;
 			}
 
 			$res = QuoteIngest::process_candidate(
 				array(
-					'text'              => $text,
-					'submission_source' => 'bot-mastodon',
+					'text'                => $text,
+					'submission_source'  => 'bot-mastodon',
 					'source_platform'   => 'mastodon',
-					'lang'              => 'en',
-					'dedup_threshold'   => (int) $settings['dedup_threshold'],
-					'source_url'        => (string) $row['url'],
-					'polylang_slug'     => (string) $settings['polylang_slug'],
+					'lang'                => 'en',
+					'dedup_threshold'     => (int) $settings['dedup_threshold'],
+					'source_url'         => (string) $row['url'],
+					'polylang_slug'      => (string) $settings['polylang_slug'],
 				)
 			);
 
-			$seen->remember( $rid );
+			$seen->remember( $ridkey );
 
 			switch ( $res['result'] ) {
 				case QuoteIngest::RESULT_CREATED:
@@ -144,19 +178,12 @@ final class Poller {
 						$stats['errors'][] = (string) $res['error'];
 					}
 			}
-
-			if ( '' === $max_id || strcmp( $rid, $max_id ) > 0 ) {
-				$max_id = $rid;
-			}
 		}
 
-		if ( ! $dry_run && '' !== $max_id && ( '' === $since || strcmp( $max_id, $since ) > 0 ) ) {
-			Settings::set_state( array( 'since_id' => $max_id ) );
-		}
-
-		if ( ! $dry_run ) {
-			$logger->push( array_merge( $stats, array( 'source' => 'mastodon' ) ) );
-		}
-		return array_merge( $stats, array( 'source' => 'mastodon' ) );
+		return array(
+			'stats'      => $stats,
+			'highest_id' => $highest,
+			'lowest_id'  => $lowest,
+		);
 	}
 }

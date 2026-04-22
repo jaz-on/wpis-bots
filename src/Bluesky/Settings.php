@@ -14,6 +14,8 @@ final class Settings {
 
 	public const MIN_POLL_INTERVAL_MINUTES = 10;
 
+	public const MIN_BACKFILL_INTERVAL_MINUTES = 30;
+
 	public const OPTION = 'wpis_bot_bluesky_options';
 
 	public const STATE_OPTION = 'wpis_bot_bluesky_state';
@@ -27,15 +29,18 @@ final class Settings {
 	 */
 	public static function defaults(): array {
 		return array(
-			'enabled'               => 0,
-			'service_url'           => 'https://bsky.social',
-			'identifier'            => '',
-			'app_password'          => '',
-			'search_query'          => 'WordPress is',
-			'poll_interval_minutes' => 15,
-			'dedup_threshold'       => 70,
-			'keyword_patterns'      => "WordPress is\nWordpress is",
-			'polylang_slug'         => '',
+			'enabled'                      => 0,
+			'service_url'                 => 'https://bsky.social',
+			'identifier'                 => '',
+			'app_password'               => '',
+			'search_query'              => 'WordPress is',
+			'poll_interval_minutes'     => 15,
+			'backfill_enabled'          => 0,
+			'backfill_interval_minutes' => 360,
+			'backfill_max_pages'         => 5,
+			'dedup_threshold'           => 70,
+			'keyword_patterns'         => "WordPress is\nWordpress is",
+			'polylang_slug'            => '',
 		);
 	}
 
@@ -47,7 +52,10 @@ final class Settings {
 		if ( ! is_array( $v ) ) {
 			$v = array();
 		}
-		return array_merge( self::defaults(), $v );
+		$out = array_merge( self::defaults(), $v );
+		$out['backfill_interval_minutes']         = max( self::MIN_BACKFILL_INTERVAL_MINUTES, min( 24 * 60, (int) $out['backfill_interval_minutes'] ) );
+		$out['backfill_max_pages'] = max( 1, min( 25, (int) $out['backfill_max_pages'] ) );
+		return $out;
 	}
 
 	/**

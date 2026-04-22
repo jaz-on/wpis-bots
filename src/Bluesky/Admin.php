@@ -114,6 +114,14 @@ final class Admin {
 		$out['poll_interval_minutes'] = isset( $input['poll_interval_minutes'] )
 			? max( Settings::MIN_POLL_INTERVAL_MINUTES, min( 120, (int) $input['poll_interval_minutes'] ) ) : 15;
 
+		$out['backfill_enabled'] = ! empty( $input['backfill_enabled'] ) ? 1 : 0;
+		$out['backfill_interval_minutes'] = isset( $input['backfill_interval_minutes'] )
+			? max( Settings::MIN_BACKFILL_INTERVAL_MINUTES, min( 24 * 60, (int) $input['backfill_interval_minutes'] ) )
+			: 360;
+		$out['backfill_max_pages'] = isset( $input['backfill_max_pages'] )
+			? max( 1, min( 25, (int) $input['backfill_max_pages'] ) )
+			: 5;
+
 		$out['dedup_threshold'] = isset( $input['dedup_threshold'] )
 			? max( 0, min( 100, (int) $input['dedup_threshold'] ) ) : 70;
 
@@ -529,6 +537,33 @@ final class Admin {
 							120,
 							DocsLinks::external_anchor( 'https://developer.wordpress.org/plugins/cron/', __( 'WordPress cron', 'wpis-bot-bluesky' ) ),
 							DocsLinks::external_anchor( 'https://wordpress.org/plugins/action-scheduler/', __( 'Action Scheduler', 'wpis-bot-bluesky' ) )
+						);
+						?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Search backfill (deeper pages)', 'wpis-bot-bluesky' ); ?></th>
+				<td>
+					<p>
+						<label>
+							<input type="checkbox" name="<?php echo esc_attr( Settings::OPTION ); ?>[backfill_enabled]" value="1" <?php checked( ! empty( $s['backfill_enabled'] ) ); ?> />
+							<?php esc_html_e( 'Run a second slow job that walks more search result pages per run (same query and filters)', 'wpis-bot-bluesky' ); ?>
+						</label>
+					</p>
+					<p>
+						<label for="wpis_b_bf_int"><?php esc_html_e( 'Backfill interval (minutes)', 'wpis-bot-bluesky' ); ?></label>
+						<input name="<?php echo esc_attr( Settings::OPTION ); ?>[backfill_interval_minutes]" id="wpis_b_bf_int" type="number" min="<?php echo (int) Settings::MIN_BACKFILL_INTERVAL_MINUTES; ?>" max="1440" value="<?php echo (int) $s['backfill_interval_minutes']; ?>" class="small-text" />
+					</p>
+					<p>
+						<label for="wpis_b_bf_pages"><?php esc_html_e( 'Max search pages per backfill run', 'wpis-bot-bluesky' ); ?></label>
+						<input name="<?php echo esc_attr( Settings::OPTION ); ?>[backfill_max_pages]" id="wpis_b_bf_pages" type="number" min="1" max="25" value="<?php echo (int) $s['backfill_max_pages']; ?>" class="small-text" />
+					</p>
+					<p class="description">
+						<?php
+						esc_html_e(
+							'The fast poll above still does one page each time. Backfill chains several search pages in one background run on its own schedule so the cursor moves faster through the index when you want more history. A short lock prevents the two jobs from changing the cursor at the same time.',
+							'wpis-bot-bluesky'
 						);
 						?>
 					</p>

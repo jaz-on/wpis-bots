@@ -94,9 +94,32 @@ final class Admin {
 
 		$out['enabled'] = ! empty( $input['enabled'] ) ? 1 : 0;
 
-		$out['instance_url'] = MastodonClient::normalize_instance_url(
-			isset( $input['instance_url'] ) ? (string) $input['instance_url'] : ''
-		);
+		$out['backfill_enabled'] = ! empty( $input['backfill_enabled'] ) ? 1 : 0;
+		$out['backfill_interval_minutes'] = isset( $input['backfill_interval_minutes'] )
+			? max( Settings::MIN_BACKFILL_INTERVAL_MINUTES, min( 24 * 60, (int) $input['backfill_interval_minutes'] ) )
+			: 360;
+		$out['backfill_max_requests_per_instance'] = isset( $input['backfill_max_requests_per_instance'] )
+			? max( 1, min( 10, (int) $input['backfill_max_requests_per_instance'] ) )
+			: 1;
+
+		$urls = array();
+		if ( isset( $input['instance_urls'] ) && is_string( $input['instance_urls'] ) ) {
+			$lines = preg_split( '/\R/', $input['instance_urls'] );
+			if ( is_array( $lines ) ) {
+				foreach ( $lines as $line ) {
+					$line = trim( (string) $line );
+					if ( '' === $line ) {
+						continue;
+					}
+					$n = MastodonClient::normalize_instance_url( $line );
+					if ( '' !== $n && ! in_array( $n, $urls, true ) ) {
+						$urls[] = $n;
+					}
+				}
+			}
+		}
+		$out['instance_urls'] = array() !== $urls ? $urls : $defaults['instance_urls'];
+		$out['instance_url']  = (string) ( $out['instance_urls'][0] ?? MastodonClient::normalize_instance_url( '' ) );
 
 		$out['access_token'] = isset( $input['access_token'] )
 			? sanitize_text_field( (string) $input['access_token'] ) : '';
@@ -136,13 +159,15 @@ final class Admin {
 		$notice_key = self::TEST_NOTICE_TRANSIENT . '_' . get_current_user_id();
 
 		$s        = Settings::get();
-		$instance = MastodonClient::normalize_instance_url( (string) $s['instance_url'] );
+		$bases    = Settings::get_instance_bases();
+		$instance = (string) ( $bases[0] ?? MastodonClient::normalize_instance_url( (string) $s['instance_url'] ) );
 		$items    = MastodonClient::fetch_tag_timeline(
 			$instance,
 			(string) $s['hashtag'],
 			'',
 			(string) $s['access_token'],
-			1
+			1,
+			''
 		);
 
 		if ( is_wp_error( $items ) ) {
@@ -161,8 +186,10 @@ final class Admin {
 		set_transient(
 			$notice_key,
 			array(
-				'ok'    => true,
-				'count' => count( $items ),
+				'ok'             => true,
+				'count'          => count( $items ),
+				'instance'       => $instance,
+				'more_instances' => max( 0, count( $bases ) - 1 ),
 			),
 			60
 		);
@@ -265,10 +292,20 @@ final class Admin {
 			if ( ! empty( $test['ok'] ) ) {
 				echo '<div class="notice notice-success is-dismissible"><p>';
 				printf(
-					/* translators: %d: number of posts returned (0 or 1) */
-					esc_html__( 'Connection test succeeded: timeline returned %d post(s). Nothing was saved to WordPress.', 'wpis-bot-mastodon' ),
-					(int) ( $test['count'] ?? 0 )
+					/* translators: 1: number of posts, 2: instance that was probed */
+					esc_html__( 'Connection test succeeded: timeline on %2$s returned %1$d post(s). Nothing was saved to WordPress.', 'wpis-bot-mastodon' ),
+					(int) ( $test['count'] ?? 0 ),
+					esc_html( (string) ( $test['instance'] ?? '' ) )
 				);
+				$more = (int) ( $test['more_instances'] ?? 0 );
+				if ( $more > 0 ) {
+					echo ' ';
+					printf(
+						/* translators: %d: number of additional instance URLs not probed */
+						esc_html__( 'The test only uses the first URL in the list (%d other line(s) were not requested in this test).', 'wpis-bot-mastodon' ),
+						$more
+					);
+				}
 				echo '</p></div>';
 			} else {
 				echo '<div class="notice notice-error is-dismissible"><p>';
@@ -425,20 +462,44 @@ final class Admin {
 				</td>
 			</tr>
 			<tr>
-				<th scope="row"><label for="wpis_m_instance"><?php esc_html_e( 'Instance URL', 'wpis-bot-mastodon' ); ?></label></th>
+				<th scope="row"><label for="wpis_m_instance_urls"><?php esc_html_e( 'Instance URLs (one per line)', 'wpis-bot-mastodon' ); ?></label></th>
 				<td>
-					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[instance_url]" id="wpis_m_instance" type="url" class="regular-text" value="<?php echo esc_attr( (string) $s['instance_url'] ); ?>" />
+					<textarea name="<?php echo esc_attr( Settings::OPTION ); ?>[instance_urls]" id="wpis_m_instance_urls" class="large-text" rows="5" spellcheck="false"><?php
+					$u = isset( $s['instance_urls'] ) && is_array( $s['instance_urls'] ) ? $s['instance_urls'] : array( (string) $s['instance_url'] );
+					echo esc_textarea( implode( "\n", $u ) );
+					?></textarea>
 					<p class="description">
 						<?php
-						printf(
-							wp_kses(
-								/* translators: 1: link to mastodon.social, 2: Join Mastodon server list, 3: Mastodon client intro */
-								__( 'The HTTPS home of the fediverse server, for example https://mastodon.social (%1$s). Use the instance root with no path: not a profile and not a post. The bot only reads the public live timeline for the hashtag in the next field on this host. Pick an instance from %2$s if you do not have one yet. How clients use that URL: %3$s.', 'wpis-bot-mastodon' ),
-								DocsLinks::external_link_allowed_tags()
-							),
-							DocsLinks::external_anchor( 'https://mastodon.social', __( 'open mastodon.social', 'wpis-bot-mastodon' ) ),
-							DocsLinks::external_anchor( 'https://joinmastodon.org/servers', __( 'Join Mastodon server list', 'wpis-bot-mastodon' ) ),
-							DocsLinks::external_anchor( 'https://docs.joinmastodon.org/client/intro/', __( 'Mastodon client basics', 'wpis-bot-mastodon' ) )
+						esc_html_e(
+							'The live bot and the backfill job use the same hashtag on every server in this list. One HTTPS origin per line, no path, not a post link. The connection test (below) only contacts the first line.',
+							'wpis-bot-mastodon'
+						);
+						?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Backfill older posts', 'wpis-bot-mastodon' ); ?></th>
+				<td>
+					<p>
+						<label>
+							<input type="checkbox" name="<?php echo esc_attr( Settings::OPTION ); ?>[backfill_enabled]" value="1" <?php checked( ! empty( $s['backfill_enabled'] ) ); ?> />
+							<?php esc_html_e( 'Run a slow second task that pages backward in the public hashtag (max_id) on each instance', 'wpis-bot-mastodon' ); ?>
+						</label>
+					</p>
+					<p>
+						<label for="wpis_m_bf_int"><?php esc_html_e( 'Backfill interval (minutes)', 'wpis-bot-mastodon' ); ?></label>
+						<input name="<?php echo esc_attr( Settings::OPTION ); ?>[backfill_interval_minutes]" id="wpis_m_bf_int" type="number" min="<?php echo (int) Settings::MIN_BACKFILL_INTERVAL_MINUTES; ?>" max="1440" value="<?php echo (int) $s['backfill_interval_minutes']; ?>" class="small-text" />
+					</p>
+					<p>
+						<label for="wpis_m_bf_req"><?php esc_html_e( 'API requests per instance per backfill run', 'wpis-bot-mastodon' ); ?></label>
+						<input name="<?php echo esc_attr( Settings::OPTION ); ?>[backfill_max_requests_per_instance]" id="wpis_m_bf_req" type="number" min="1" max="10" value="<?php echo (int) $s['backfill_max_requests_per_instance']; ?>" class="small-text" />
+					</p>
+					<p class="description">
+						<?php
+						esc_html_e(
+							'The live job only loads new posts. Backfill reuses the same filter rules and fetches older pages on a separate schedule so you can start from an empty site without waiting only for brand-new toots. Keep intervals high if you need to be gentle to each instance. When a tag has no more history, that instance is marked done until you change settings.',
+							'wpis-bot-mastodon'
 						);
 						?>
 					</p>
