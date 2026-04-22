@@ -39,7 +39,7 @@ Ces comptes servent de **référence** (profil, transparence). Le site WordPress
 1. Dans WordPress, menu latéral **WPIS Bots → Mastodon** (ou l’onglet Mastodon sous **WPIS Bots**).
 2. **Activer le bot** seulement quand la configuration est prête.
 3. **URL de l’instance** : l’adresse du serveur Mastodon (souvent `https://mastodon.social` ou celui de votre communauté). Respectez les règles de cette instance (certaines n’aiment pas les comptes ou scripts trop gourmands en requêtes).
-4. **Jeton d’accès** : souvent vide si la ligne de temps du **hashtag public** est lisible sans compte. Sinon créez un compte applicatif sur l’instance et collez le jeton ici. **Ne partagez jamais ce jeton** (mail, capture d’écran publique, etc.).
+4. **Jeton d’accès** : souvent **vide** si le fil **hashtag public** se lit sans compte. Sinon, sur Mastodon : **Préférences → Développement → Nouvelle application**. URI de redirection : `urn:ietf:wg:oauth:2.0:oob` si vous collez seulement le jeton dans WordPress. **Cases à cocher** : au minimum **`read`** (et **`read:statuses`** si proposé) — pas besoin d’**écriture** : le plugin ne fait que **lire** le fil du hashtag, il ne publie rien sur Mastodon. **Ne partagez jamais ce jeton.**
 5. **Hashtag** : sans le caractère `#`, par exemple `wordpress`.
 6. **Intervalle** : espacement entre deux vérifications. Laissez au moins **10–15 minutes** sauf besoin précis ; les serveurs imposent des plafonds (voir doc limites).
 7. **Mots-clés** : une ligne = une expression que le message doit contenir (ex. `WordPress is`). Si la liste est vide, tout message récupéré peut être proposé (peu recommandé).

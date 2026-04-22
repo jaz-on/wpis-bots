@@ -139,7 +139,41 @@ final class Admin {
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_m_token"><?php esc_html_e( 'Access token (optional)', 'wpis-bot-mastodon' ); ?></label></th>
-				<td><input name="<?php echo esc_attr( Settings::OPTION ); ?>[access_token]" id="wpis_m_token" type="password" class="regular-text" autocomplete="off" value="<?php echo esc_attr( (string) $s['access_token'] ); ?>" /></td>
+				<td>
+					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[access_token]" id="wpis_m_token" type="password" class="regular-text" autocomplete="off" value="<?php echo esc_attr( (string) $s['access_token'] ); ?>" />
+					<p class="description">
+						<?php
+						esc_html_e(
+							'Leave empty when the public hashtag timeline works without logging in (most instances). If you must create an app under Preferences → Development:',
+							'wpis-bot-mastodon'
+						);
+						?>
+					</p>
+					<p class="description">
+						<?php
+						esc_html_e(
+							'Redirect URI: urn:ietf:wg:oauth:2.0:oob is correct when you only copy the access token into WordPress (no browser callback).',
+							'wpis-bot-mastodon'
+						);
+						?>
+					</p>
+					<p class="description">
+						<?php
+						esc_html_e(
+							'Scopes: enable read. If the form lists fine-grained scopes, also enable read:statuses (read public posts). Profile alone is not enough.',
+							'wpis-bot-mastodon'
+						);
+						?>
+					</p>
+					<p class="description">
+						<?php
+						esc_html_e(
+							'Do not enable write or write:statuses — this plugin only downloads the tag timeline and never publishes to Mastodon.',
+							'wpis-bot-mastodon'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_m_tag"><?php esc_html_e( 'Hashtag (no #)', 'wpis-bot-mastodon' ); ?></label></th>
