@@ -392,11 +392,31 @@ final class Admin {
 		<table class="form-table" role="presentation">
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Enable bot', 'wpis-bot-mastodon' ); ?></th>
-				<td><label><input type="checkbox" name="<?php echo esc_attr( Settings::OPTION ); ?>[enabled]" value="1" <?php checked( $s['enabled'], 1 ); ?> /> <?php esc_html_e( 'Poll Mastodon on a schedule', 'wpis-bot-mastodon' ); ?></label></td>
+				<td>
+					<label><input type="checkbox" name="<?php echo esc_attr( Settings::OPTION ); ?>[enabled]" value="1" <?php checked( $s['enabled'], 1 ); ?> /> <?php esc_html_e( 'Poll Mastodon on a schedule', 'wpis-bot-mastodon' ); ?></label>
+					<p class="description">
+						<?php
+						esc_html_e(
+							'When on, the site runs a recurring job to read the public hashtag stream and may create or bump quote drafts. When off, the schedule is idle, but Test connection and manual poll (below) still work for debugging.',
+							'wpis-bot-mastodon'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_m_instance"><?php esc_html_e( 'Instance URL', 'wpis-bot-mastodon' ); ?></label></th>
-				<td><input name="<?php echo esc_attr( Settings::OPTION ); ?>[instance_url]" id="wpis_m_instance" type="url" class="regular-text" value="<?php echo esc_attr( (string) $s['instance_url'] ); ?>" /></td>
+				<td>
+					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[instance_url]" id="wpis_m_instance" type="url" class="regular-text" value="<?php echo esc_attr( (string) $s['instance_url'] ); ?>" />
+					<p class="description">
+						<?php
+						esc_html_e(
+							'The HTTPS home of the fediverse server, for example https://mastodon.social. Use the instance root with no path: not a profile and not a post. The bot only reads the public live timeline for the hashtag in the next field on this host.',
+							'wpis-bot-mastodon'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_m_token"><?php esc_html_e( 'Access token (optional)', 'wpis-bot-mastodon' ); ?></label></th>
@@ -405,7 +425,7 @@ final class Admin {
 					<p class="description">
 						<?php
 						esc_html_e(
-							'Leave empty when the public hashtag timeline works without logging in (most instances). If you must create an app under Preferences → Development:',
+							'Leave this blank on most sites. The bot only needs a token if the public hashtag stream is not visible to anonymous users. If Test connection works without a token, keep the field empty. If you do need a token, create an application in Preferences, Development, then set the next items in this list before you copy the access token in here.',
 							'wpis-bot-mastodon'
 						);
 						?>
@@ -438,23 +458,76 @@ final class Admin {
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_m_tag"><?php esc_html_e( 'Hashtag (no #)', 'wpis-bot-mastodon' ); ?></label></th>
-				<td><input name="<?php echo esc_attr( Settings::OPTION ); ?>[hashtag]" id="wpis_m_tag" type="text" class="regular-text" value="<?php echo esc_attr( (string) $s['hashtag'] ); ?>" /></td>
+				<td>
+					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[hashtag]" id="wpis_m_tag" type="text" class="regular-text" value="<?php echo esc_attr( (string) $s['hashtag'] ); ?>" />
+					<p class="description">
+						<?php
+						esc_html_e(
+							'Type the tag name only, for example wordpress. Do not type a hash. On save, the value is lowercased and any character that is not a letter, number or underscore is removed. The bot fetches the public local hashtag stream, not a full-text search. If you are unsure, open your instance, search for a tag and read the part after the # in the URL.',
+							'wpis-bot-mastodon'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_m_interval"><?php esc_html_e( 'Poll interval (minutes)', 'wpis-bot-mastodon' ); ?></label></th>
-				<td><input name="<?php echo esc_attr( Settings::OPTION ); ?>[poll_interval_minutes]" id="wpis_m_interval" type="number" min="<?php echo (int) Settings::MIN_POLL_INTERVAL_MINUTES; ?>" max="120" value="<?php echo (int) $s['poll_interval_minutes']; ?>" /></td>
+				<td>
+					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[poll_interval_minutes]" id="wpis_m_interval" type="number" min="<?php echo (int) Settings::MIN_POLL_INTERVAL_MINUTES; ?>" max="120" value="<?php echo (int) $s['poll_interval_minutes']; ?>" />
+					<p class="description">
+						<?php
+						printf(
+							/* translators: 1: minimum minutes, 2: maximum minutes */
+							esc_html__( 'Time between automatic runs. Must be between %1$d and %2$d. Smaller values ask the instance more often. The schedule uses WordPress cron or Action Scheduler, depending on your site.',
+							'wpis-bot-mastodon' ),
+							(int) Settings::MIN_POLL_INTERVAL_MINUTES,
+							120
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_m_dedup"><?php esc_html_e( 'Dedup threshold (0–100)', 'wpis-bot-mastodon' ); ?></label></th>
-				<td><input name="<?php echo esc_attr( Settings::OPTION ); ?>[dedup_threshold]" id="wpis_m_dedup" type="number" min="0" max="100" value="<?php echo (int) $s['dedup_threshold']; ?>" /></td>
+				<td>
+					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[dedup_threshold]" id="wpis_m_dedup" type="number" min="0" max="100" value="<?php echo (int) $s['dedup_threshold']; ?>" />
+					<p class="description">
+						<?php
+						esc_html_e(
+							'Passed to WPIS Core when a candidate might match an existing quote. Higher means a closer match is needed before a post is treated as a duplicate and bumped instead of a new draft. 0 to 100.',
+							'wpis-bot-mastodon'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_m_kw"><?php esc_html_e( 'Keyword patterns (one per line, substring match)', 'wpis-bot-mastodon' ); ?></label></th>
-				<td><textarea name="<?php echo esc_attr( Settings::OPTION ); ?>[keyword_patterns]" id="wpis_m_kw" class="large-text" rows="6"><?php echo esc_textarea( (string) $s['keyword_patterns'] ); ?></textarea></td>
+				<td>
+					<textarea name="<?php echo esc_attr( Settings::OPTION ); ?>[keyword_patterns]" id="wpis_m_kw" class="large-text" rows="6"><?php echo esc_textarea( (string) $s['keyword_patterns'] ); ?></textarea>
+					<p class="description">
+						<?php
+						esc_html_e(
+							'Each line is a substring match (case-insensitive). A post that came from the hashtag must still match at least one non-empty line. If every line is empty, the code treats the match as true for all posts, so keep real patterns unless you know you want that.',
+							'wpis-bot-mastodon'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_m_pll"><?php esc_html_e( 'Polylang language slug (optional)', 'wpis-bot-mastodon' ); ?></label></th>
-				<td><input name="<?php echo esc_attr( Settings::OPTION ); ?>[polylang_slug]" id="wpis_m_pll" type="text" class="regular-text" value="<?php echo esc_attr( (string) $s['polylang_slug'] ); ?>" /></td>
+				<td>
+					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[polylang_slug]" id="wpis_m_pll" type="text" class="regular-text" value="<?php echo esc_attr( (string) $s['polylang_slug'] ); ?>" />
+					<p class="description">
+						<?php
+						esc_html_e(
+							'If Polylang is active, set the content language slug for new drafts, for example en or fr. Leave empty if you are not using Polylang or you want the default in WPIS Core to apply.',
+							'wpis-bot-mastodon'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 		</table>
 		<?php

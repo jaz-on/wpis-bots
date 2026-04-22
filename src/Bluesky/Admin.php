@@ -409,11 +409,31 @@ final class Admin {
 		<table class="form-table" role="presentation">
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Enable bot', 'wpis-bot-bluesky' ); ?></th>
-				<td><label><input type="checkbox" name="<?php echo esc_attr( Settings::OPTION ); ?>[enabled]" value="1" <?php checked( $s['enabled'], 1 ); ?> /> <?php esc_html_e( 'Poll Bluesky on a schedule', 'wpis-bot-bluesky' ); ?></label></td>
+				<td>
+					<label><input type="checkbox" name="<?php echo esc_attr( Settings::OPTION ); ?>[enabled]" value="1" <?php checked( $s['enabled'], 1 ); ?> /> <?php esc_html_e( 'Poll Bluesky on a schedule', 'wpis-bot-bluesky' ); ?></label>
+					<p class="description">
+						<?php
+						esc_html_e(
+							'When on, the site runs a recurring job to search Bluesky and may create or bump quote drafts. When off, that schedule does not run, but the Test connection and manual poll actions (below) still work for debugging.',
+							'wpis-bot-bluesky'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_b_service"><?php esc_html_e( 'Service URL', 'wpis-bot-bluesky' ); ?></label></th>
-				<td><input name="<?php echo esc_attr( Settings::OPTION ); ?>[service_url]" id="wpis_b_service" type="url" class="regular-text" value="<?php echo esc_attr( (string) $s['service_url'] ); ?>" /></td>
+				<td>
+					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[service_url]" id="wpis_b_service" type="url" class="regular-text" value="<?php echo esc_attr( (string) $s['service_url'] ); ?>" />
+					<p class="description">
+						<?php
+						esc_html_e(
+							'Base URL of the PDS and AppView for your account. Use https://bsky.social for a normal bluesky.social account. Change it only if your account is hosted on a different PDS (advanced). No path after the host.',
+							'wpis-bot-bluesky'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_b_id"><?php esc_html_e( 'Bluesky account', 'wpis-bot-bluesky' ); ?></label></th>
@@ -431,27 +451,90 @@ final class Admin {
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_b_pw"><?php esc_html_e( 'App password', 'wpis-bot-bluesky' ); ?></label></th>
-				<td><input name="<?php echo esc_attr( Settings::OPTION ); ?>[app_password]" id="wpis_b_pw" type="password" class="regular-text" autocomplete="new-password" value="<?php echo esc_attr( (string) $s['app_password'] ); ?>" /></td>
+				<td>
+					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[app_password]" id="wpis_b_pw" type="password" class="regular-text" autocomplete="new-password" value="<?php echo esc_attr( (string) $s['app_password'] ); ?>" />
+					<p class="description">
+						<?php
+						esc_html_e(
+							'Create it under the Bluesky app or site (Settings, App passwords), not your main login password. It usually has four word-like parts separated by hyphens. If it leaks, delete it in Bluesky and add a new one here.',
+							'wpis-bot-bluesky'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_b_q"><?php esc_html_e( 'Search query', 'wpis-bot-bluesky' ); ?></label></th>
-				<td><input name="<?php echo esc_attr( Settings::OPTION ); ?>[search_query]" id="wpis_b_q" type="text" class="regular-text" value="<?php echo esc_attr( (string) $s['search_query'] ); ?>" /></td>
+				<td>
+					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[search_query]" id="wpis_b_q" type="text" class="regular-text" value="<?php echo esc_attr( (string) $s['search_query'] ); ?>" />
+					<p class="description">
+						<?php
+						esc_html_e(
+							'The same type of string as the Bluesky search field: words, phrases or other search syntax. The bot fetches recent posts for this query, then applies the keyword list below. Broader text matches more posts and can use the API more quickly.',
+							'wpis-bot-bluesky'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_b_interval"><?php esc_html_e( 'Poll interval (minutes)', 'wpis-bot-bluesky' ); ?></label></th>
-				<td><input name="<?php echo esc_attr( Settings::OPTION ); ?>[poll_interval_minutes]" id="wpis_b_interval" type="number" min="<?php echo (int) Settings::MIN_POLL_INTERVAL_MINUTES; ?>" max="120" value="<?php echo (int) $s['poll_interval_minutes']; ?>" /></td>
+				<td>
+					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[poll_interval_minutes]" id="wpis_b_interval" type="number" min="<?php echo (int) Settings::MIN_POLL_INTERVAL_MINUTES; ?>" max="120" value="<?php echo (int) $s['poll_interval_minutes']; ?>" />
+					<p class="description">
+						<?php
+						printf(
+							/* translators: 1: minimum minutes, 2: maximum minutes */
+							esc_html__( 'Time between automatic runs. Must be between %1$d and %2$d. Smaller values call Bluesky more often. The schedule uses WordPress cron or Action Scheduler, depending on your site.',
+							'wpis-bot-bluesky' ),
+							(int) Settings::MIN_POLL_INTERVAL_MINUTES,
+							120
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_b_dedup"><?php esc_html_e( 'Dedup threshold (0–100)', 'wpis-bot-bluesky' ); ?></label></th>
-				<td><input name="<?php echo esc_attr( Settings::OPTION ); ?>[dedup_threshold]" id="wpis_b_dedup" type="number" min="0" max="100" value="<?php echo (int) $s['dedup_threshold']; ?>" /></td>
+				<td>
+					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[dedup_threshold]" id="wpis_b_dedup" type="number" min="0" max="100" value="<?php echo (int) $s['dedup_threshold']; ?>" />
+					<p class="description">
+						<?php
+						esc_html_e(
+							'Passed to WPIS Core when a candidate might match an existing quote. Higher means a closer match is needed before a post is treated as a duplicate (bump) instead of a new draft. 0 to 100.',
+							'wpis-bot-bluesky'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_b_kw"><?php esc_html_e( 'Keyword patterns (one per line)', 'wpis-bot-bluesky' ); ?></label></th>
-				<td><textarea name="<?php echo esc_attr( Settings::OPTION ); ?>[keyword_patterns]" id="wpis_b_kw" class="large-text" rows="6"><?php echo esc_textarea( (string) $s['keyword_patterns'] ); ?></textarea></td>
+				<td>
+					<textarea name="<?php echo esc_attr( Settings::OPTION ); ?>[keyword_patterns]" id="wpis_b_kw" class="large-text" rows="6"><?php echo esc_textarea( (string) $s['keyword_patterns'] ); ?></textarea>
+					<p class="description">
+						<?php
+						esc_html_e(
+							'Each line is a substring match (case-insensitive). The post must match at least one non-empty line. If every line is empty, the code treats the match as true for all posts, so keep real patterns unless you know you want that.',
+							'wpis-bot-bluesky'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_b_pll"><?php esc_html_e( 'Polylang language slug (optional)', 'wpis-bot-bluesky' ); ?></label></th>
-				<td><input name="<?php echo esc_attr( Settings::OPTION ); ?>[polylang_slug]" id="wpis_b_pll" type="text" class="regular-text" value="<?php echo esc_attr( (string) $s['polylang_slug'] ); ?>" /></td>
+				<td>
+					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[polylang_slug]" id="wpis_b_pll" type="text" class="regular-text" value="<?php echo esc_attr( (string) $s['polylang_slug'] ); ?>" />
+					<p class="description">
+						<?php
+						esc_html_e(
+							'If Polylang is active, set the content language slug for new drafts, for example en or fr. Leave empty if you are not using Polylang or you want the default in WPIS Core to apply.',
+							'wpis-bot-bluesky'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 		</table>
 		<?php
