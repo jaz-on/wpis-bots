@@ -25,6 +25,25 @@ if ( ! defined( 'WPIS_BOTS_PLUGIN_FILE' ) ) {
 	define( 'WPIS_BOTS_PLUGIN_FILE', __FILE__ );
 }
 
+add_filter(
+	'plugin_action_links_' . plugin_basename( WPIS_BOTS_PLUGIN_FILE ),
+	static function ( array $links ): array {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return $links;
+		}
+		$url = admin_url( 'admin.php?page=wpis-bot-mastodon' );
+		array_unshift(
+			$links,
+			sprintf(
+				'<a href="%1$s">%2$s</a>',
+				esc_url( $url ),
+				esc_html__( 'Settings', 'wpis-bots' )
+			)
+		);
+		return $links;
+	}
+);
+
 if ( ! defined( 'WPIS_BOTS_DIR' ) ) {
 	define( 'WPIS_BOTS_DIR', __DIR__ );
 }
