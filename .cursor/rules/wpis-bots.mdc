@@ -1,0 +1,11 @@
+---
+description: WPIS ingestion bots (Mastodon, Bluesky)
+globs: packages/wpis-bots/**
+---
+
+# WPIS bots rules
+
+- **Layout**: `wpis-bot-mastodon/` and `wpis-bot-bluesky/` are separate plugin roots; shared code in `lib/`.
+- **Dependency**: requires [**wpis-plugin**](https://github.com/jaz-on/wpis-plugin) active (quotes CPT, `wpis_find_potential_duplicates`, counter sync). Ingestion uses `wpis_submit_quote_candidate()` from core.
+- **Docs**: ship with `docs/` in this repo (admin guide, API limits). Workspace mirror: `workspace/docs/wpis-bots/README.md`.
+- **English copy**: workspace `.cursor/rules/no-oxford-comma-english.mdc` for user-facing strings.
