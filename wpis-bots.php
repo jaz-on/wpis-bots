@@ -10,7 +10,7 @@
  * Text Domain: wpis-bots
  * Requires at least: 6.9
  * Requires PHP: 8.2
- * Requires Plugins: wpis-plugin, action-scheduler
+ * Requires Plugins: wpis-core, action-scheduler
  * GitHub Plugin URI: https://github.com/jaz-on/wpis-bots
  * Primary Branch: main
  *

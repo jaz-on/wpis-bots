@@ -8,7 +8,7 @@
 namespace WPIS\Bots;
 
 /**
- * Delegates to wpis_submit_quote_candidate() from wpis-plugin.
+ * Delegates to wpis_submit_quote_candidate() from wpis-core.
  */
 final class QuoteIngest {
 
@@ -29,7 +29,7 @@ final class QuoteIngest {
 		if ( ! function_exists( 'wpis_submit_quote_candidate' ) ) {
 			return array(
 				'result' => self::RESULT_ERROR_INSERT,
-				'error'  => 'wpis_submit_quote_candidate missing; update WPIS Core (wpis-plugin).',
+				'error'  => 'wpis_submit_quote_candidate missing; update WPIS Core (wpis-core).',
 			);
 		}
 

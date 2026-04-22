@@ -1,6 +1,6 @@
 <?php
 /**
- * WPIS Core (wpis-plugin) availability for admin screens.
+ * WPIS Core (wpis-core) availability for admin screens.
  *
  * @package WPIS\Bots
  */
@@ -21,7 +21,7 @@ final class CoreDependency {
 		}
 		echo '<div class="notice notice-error"><p>';
 		esc_html_e(
-			'WPIS Bots needs WordPress Is… Core: install and activate the wpis-plugin package (folder wpis-plugin, file wpis-plugin.php).',
+			'WPIS Bots needs WordPress Is… Core: install and activate the wpis-core package (folder wpis-core, file wpis-core.php).',
 			'wpis-bots'
 		);
 		echo '</p></div>';

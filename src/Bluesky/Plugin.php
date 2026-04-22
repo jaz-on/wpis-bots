@@ -20,7 +20,7 @@ final class Plugin {
 	}
 
 	/**
-	 * Ensure wpis-plugin is loaded.
+	 * Ensure wpis-core is loaded.
 	 */
 	public function bootstrap(): void {
 		Admin::register();

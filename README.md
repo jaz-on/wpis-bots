@@ -1,10 +1,10 @@
 # WPIS Bots
 
-One **WordPress plugin** (Mastodon + Bluesky ingestion) for **WordPress Is…**. Ships with shared `lib/`, PSR-4 `src/`, and two settings screens. Requires [**wpis-plugin**](https://github.com/jaz-on/wpis-plugin) (core quotes, dedup, moderation) and the [**Action Scheduler**](https://wordpress.org/plugins/action-scheduler/) plugin (WordPress lists both under **Plugins →** requirements with WordPress 6.5+).
+One **WordPress plugin** (Mastodon + Bluesky ingestion) for **WordPress Is…**. Ships with shared `lib/`, PSR-4 `src/`, and two settings screens. Requires [**WordPress Is… Core**](https://github.com/jaz-on/wpis-core) (folder `wpis-core/`, `wpis-core.php`) and the [**Action Scheduler**](https://wordpress.org/plugins/action-scheduler/) plugin (WordPress lists both under **Plugins →** requirements with WordPress 6.5+).
 
 **Docs (French):** [Guide administrateur](docs/GUIDE-ADMIN.md), [API limits](docs/LIMITES-API-ET-BONNES-PRATIQUES.md), [resources](docs/RESSOURCES.md). Override doc URLs with the `wpis_bots_docs_base_url` filter.
 
-Ingestion calls **`wpis_submit_quote_candidate()`** from wpis-plugin.
+Ingestion calls **`wpis_submit_quote_candidate()`** from **WordPress Is… Core** (wpis-core).
 
 ## Repository layout
 
@@ -18,7 +18,7 @@ Ingestion calls **`wpis_submit_quote_candidate()`** from wpis-plugin.
 ## Requirements
 
 - WordPress 6.9+ and PHP 8.2+
-- **wpis-plugin** and **Action Scheduler** active (see plugin headers)
+- **wpis-core** and **Action Scheduler** active (see plugin headers)
 - Optional: **Polylang** (language slug in bot settings)
 
 ## Install (classic upload)
