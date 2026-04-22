@@ -55,9 +55,14 @@ final class Admin {
 			return;
 		}
 		echo '<div class="notice notice-warning"><p>';
-		echo esc_html__(
-			'Action Scheduler is not available. Install and activate the Action Scheduler plugin (or rely on WP-Cron, which is less reliable on low traffic sites).',
-			'wpis-bot-bluesky'
+		printf(
+			wp_kses(
+				/* translators: 1: Action Scheduler plugin link, 2: WP-Cron handbook link */
+				__( 'Action Scheduler is not available. Install and activate the %1$s plugin (or rely on %2$s, which is less reliable on low traffic sites).', 'wpis-bot-bluesky' ),
+				DocsLinks::external_link_allowed_tags()
+			),
+			DocsLinks::external_anchor( 'https://wordpress.org/plugins/action-scheduler/', __( 'Action Scheduler', 'wpis-bot-bluesky' ) ),
+			DocsLinks::external_anchor( 'https://developer.wordpress.org/plugins/cron/', __( 'WP-Cron', 'wpis-bot-bluesky' ) )
 		);
 		echo '</p></div>';
 	}
@@ -350,6 +355,16 @@ final class Admin {
 		echo '<div class="card" style="max-width: 56rem; padding: 1rem 1.25rem; margin: 1em 0;">';
 		echo '<h2 style="margin-top: 0;">' . esc_html__( 'Try the API and run a poll', 'wpis-bot-bluesky' ) . '</h2>';
 		echo '<p class="description">' . esc_html__( 'These actions use settings already saved in the database. Save the form below first if you changed any field.', 'wpis-bot-bluesky' ) . '</p>';
+		echo '<p class="description">';
+		printf(
+			wp_kses(
+				/* translators: %s: link to Bluesky developer documentation */
+				__( 'Platform overview: %s.', 'wpis-bot-bluesky' ),
+				DocsLinks::external_link_allowed_tags()
+			),
+			DocsLinks::external_anchor( 'https://docs.bsky.app/docs/get-started', __( 'Bluesky developer docs', 'wpis-bot-bluesky' ) )
+		);
+		echo '</p>';
 
 		echo '<h3>' . esc_html__( 'Test connection', 'wpis-bot-bluesky' ) . '</h3>';
 		echo '<p>' . esc_html__( 'Opens a session and runs one search. Does not create drafts or change bot state.', 'wpis-bot-bluesky' ) . '</p>';
@@ -413,9 +428,13 @@ final class Admin {
 					<label><input type="checkbox" name="<?php echo esc_attr( Settings::OPTION ); ?>[enabled]" value="1" <?php checked( $s['enabled'], 1 ); ?> /> <?php esc_html_e( 'Poll Bluesky on a schedule', 'wpis-bot-bluesky' ); ?></label>
 					<p class="description">
 						<?php
-						esc_html_e(
-							'When on, the site runs a recurring job to search Bluesky and may create or bump quote drafts. When off, that schedule does not run, but the Test connection and manual poll actions (below) still work for debugging.',
-							'wpis-bot-bluesky'
+						printf(
+							wp_kses(
+								/* translators: %s: link to shipped admin guide on GitHub */
+								__( 'When on, the site runs a recurring job to search Bluesky and may create or bump quote drafts. When off, that schedule does not run, but the Test connection and manual poll actions (below) still work for debugging. Options and limits: %s.', 'wpis-bot-bluesky' ),
+								DocsLinks::external_link_allowed_tags()
+							),
+							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'GUIDE-ADMIN.md' ), __( 'WPIS Bots admin guide (GitHub)', 'wpis-bot-bluesky' ) )
 						);
 						?>
 					</p>
@@ -427,9 +446,14 @@ final class Admin {
 					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[service_url]" id="wpis_b_service" type="url" class="regular-text" value="<?php echo esc_attr( (string) $s['service_url'] ); ?>" />
 					<p class="description">
 						<?php
-						esc_html_e(
-							'Base URL of the PDS and AppView for your account. Use https://bsky.social for a normal bluesky.social account. Change it only if your account is hosted on a different PDS (advanced). No path after the host.',
-							'wpis-bot-bluesky'
+						printf(
+							wp_kses(
+								/* translators: 1: link to bsky.social, 2: link to Bluesky API hosts documentation */
+								__( 'Base URL of the PDS and AppView for your account. Use https://bsky.social for a normal bluesky.social account (%1$s). Change it only if your account is hosted on a different PDS (advanced). No path after the host. See %2$s when you point at a custom PDS.', 'wpis-bot-bluesky' ),
+								DocsLinks::external_link_allowed_tags()
+							),
+							DocsLinks::external_anchor( 'https://bsky.social', __( 'open Bluesky in the browser', 'wpis-bot-bluesky' ) ),
+							DocsLinks::external_anchor( 'https://docs.bsky.app/docs/advanced-guides/api-directory', __( 'Bluesky API hosts guide', 'wpis-bot-bluesky' ) )
 						);
 						?>
 					</p>
@@ -441,9 +465,13 @@ final class Admin {
 					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[identifier]" id="wpis_b_id" type="text" class="regular-text" autocomplete="username" value="<?php echo esc_attr( (string) $s['identifier'] ); ?>" />
 					<p class="description">
 						<?php
-						esc_html_e(
-							'Use your handle, your sign-in email or a DID. A bsky.app profile link or a line that starts with an at-sign before the handle is normalized on save. A display name or a post URL on its own is not valid here.',
-							'wpis-bot-bluesky'
+						printf(
+							wp_kses(
+								/* translators: %s: link to Bluesky account settings */
+								__( 'Use your handle, your sign-in email or a DID. A bsky.app profile link or a line that starts with an at-sign before the handle is normalized on save. A display name or a post URL on its own is not valid here. Open %s if you need your handle.', 'wpis-bot-bluesky' ),
+								DocsLinks::external_link_allowed_tags()
+							),
+							DocsLinks::external_anchor( 'https://bsky.app/settings', __( 'Bluesky account settings', 'wpis-bot-bluesky' ) )
 						);
 						?>
 					</p>
@@ -455,9 +483,13 @@ final class Admin {
 					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[app_password]" id="wpis_b_pw" type="password" class="regular-text" autocomplete="new-password" value="<?php echo esc_attr( (string) $s['app_password'] ); ?>" />
 					<p class="description">
 						<?php
-						esc_html_e(
-							'Create it under the Bluesky app or site (Settings, App passwords), not your main login password. It usually has four word-like parts separated by hyphens. If it leaks, delete it in Bluesky and add a new one here.',
-							'wpis-bot-bluesky'
+						printf(
+							wp_kses(
+								/* translators: %s: link to Bluesky app passwords */
+								__( 'Create it under %s, not your main login password. It usually has four word-like parts separated by hyphens. If it leaks, delete it in Bluesky and add a new one here.', 'wpis-bot-bluesky' ),
+								DocsLinks::external_link_allowed_tags()
+							),
+							DocsLinks::external_anchor( 'https://bsky.app/settings/app-passwords', __( 'Bluesky app passwords', 'wpis-bot-bluesky' ) )
 						);
 						?>
 					</p>
@@ -469,9 +501,13 @@ final class Admin {
 					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[search_query]" id="wpis_b_q" type="text" class="regular-text" value="<?php echo esc_attr( (string) $s['search_query'] ); ?>" />
 					<p class="description">
 						<?php
-						esc_html_e(
-							'The same type of string as the Bluesky search field: words, phrases or other search syntax. The bot fetches recent posts for this query, then applies the keyword list below. Broader text matches more posts and can use the API more quickly.',
-							'wpis-bot-bluesky'
+						printf(
+							wp_kses(
+								/* translators: %s: link to Bluesky search */
+								__( 'The same type of string as the Bluesky search field: words, phrases or other search syntax. The bot fetches recent posts for this query, then applies the keyword list below. Broader text matches more posts and can use the API more quickly. Try the same string in %s first.', 'wpis-bot-bluesky' ),
+								DocsLinks::external_link_allowed_tags()
+							),
+							DocsLinks::external_anchor( 'https://bsky.app/search', __( 'Bluesky search', 'wpis-bot-bluesky' ) )
 						);
 						?>
 					</p>
@@ -484,11 +520,15 @@ final class Admin {
 					<p class="description">
 						<?php
 						printf(
-							/* translators: 1: minimum minutes, 2: maximum minutes */
-							esc_html__( 'Time between automatic runs. Must be between %1$d and %2$d. Smaller values call Bluesky more often. The schedule uses WordPress cron or Action Scheduler, depending on your site.',
-							'wpis-bot-bluesky' ),
+							wp_kses(
+								/* translators: 1: minimum minutes, 2: maximum minutes, 3: WP-Cron link, 4: Action Scheduler link */
+								__( 'Time between automatic runs. Must be between %1$d and %2$d. Smaller values call Bluesky more often. The schedule uses %3$s or %4$s, depending on your site.', 'wpis-bot-bluesky' ),
+								DocsLinks::external_link_allowed_tags()
+							),
 							(int) Settings::MIN_POLL_INTERVAL_MINUTES,
-							120
+							120,
+							DocsLinks::external_anchor( 'https://developer.wordpress.org/plugins/cron/', __( 'WordPress cron', 'wpis-bot-bluesky' ) ),
+							DocsLinks::external_anchor( 'https://wordpress.org/plugins/action-scheduler/', __( 'Action Scheduler', 'wpis-bot-bluesky' ) )
 						);
 						?>
 					</p>
@@ -500,9 +540,13 @@ final class Admin {
 					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[dedup_threshold]" id="wpis_b_dedup" type="number" min="0" max="100" value="<?php echo (int) $s['dedup_threshold']; ?>" />
 					<p class="description">
 						<?php
-						esc_html_e(
-							'Passed to WPIS Core when a candidate might match an existing quote. Higher means a closer match is needed before a post is treated as a duplicate (bump) instead of a new draft. 0 to 100.',
-							'wpis-bot-bluesky'
+						printf(
+							wp_kses(
+								/* translators: %s: link to admin guide */
+								__( 'Passed to WPIS Core when a candidate might match an existing quote. Higher means a closer match is needed before a post is treated as a duplicate (bump) instead of a new draft. 0 to 100. See %s.', 'wpis-bot-bluesky' ),
+								DocsLinks::external_link_allowed_tags()
+							),
+							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'GUIDE-ADMIN.md' ), __( 'WPIS Bots admin guide (GitHub)', 'wpis-bot-bluesky' ) )
 						);
 						?>
 					</p>
@@ -514,9 +558,13 @@ final class Admin {
 					<textarea name="<?php echo esc_attr( Settings::OPTION ); ?>[keyword_patterns]" id="wpis_b_kw" class="large-text" rows="6"><?php echo esc_textarea( (string) $s['keyword_patterns'] ); ?></textarea>
 					<p class="description">
 						<?php
-						esc_html_e(
-							'Each line is a substring match (case-insensitive). The post must match at least one non-empty line. If every line is empty, the code treats the match as true for all posts, so keep real patterns unless you know you want that.',
-							'wpis-bot-bluesky'
+						printf(
+							wp_kses(
+								/* translators: %s: link to API limits doc */
+								__( 'Each line is a substring match (case-insensitive). The post must match at least one non-empty line. If every line is empty, the code treats the match as true for all posts, so keep real patterns unless you know you want that. Pacing and quotas: %s.', 'wpis-bot-bluesky' ),
+								DocsLinks::external_link_allowed_tags()
+							),
+							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'LIMITES-API-ET-BONNES-PRATIQUES.md' ), __( 'API limits and good practice (GitHub)', 'wpis-bot-bluesky' ) )
 						);
 						?>
 					</p>
@@ -528,9 +576,13 @@ final class Admin {
 					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[polylang_slug]" id="wpis_b_pll" type="text" class="regular-text" value="<?php echo esc_attr( (string) $s['polylang_slug'] ); ?>" />
 					<p class="description">
 						<?php
-						esc_html_e(
-							'If Polylang is active, set the content language slug for new drafts, for example en or fr. Leave empty if you are not using Polylang or you want the default in WPIS Core to apply.',
-							'wpis-bot-bluesky'
+						printf(
+							wp_kses(
+								/* translators: %s: link to Polylang language code help */
+								__( 'If Polylang is active, set the content language slug for new drafts, for example en or fr. Leave empty if you are not using Polylang or you want the default in WPIS Core to apply. Find codes under %s.', 'wpis-bot-bluesky' ),
+								DocsLinks::external_link_allowed_tags()
+							),
+							DocsLinks::external_anchor( 'https://polylang.pro/doc/how-to-find-the-language-code-in-polylang/', __( 'Polylang language codes', 'wpis-bot-bluesky' ) )
 						);
 						?>
 					</p>
@@ -545,9 +597,13 @@ final class Admin {
 			$at_last = isset( $last['at'] ) ? gmdate( 'Y-m-d H:i:s', (int) $last['at'] ) . ' UTC' : '—';
 			echo '<p class="description">';
 			printf(
-				/* translators: 1: UTC datetime of last run */
-				esc_html__( 'Last logged run: %1$s (see Run logs for full history).', 'wpis-bot-bluesky' ),
-				esc_html( $at_last )
+				wp_kses(
+					/* translators: 1: UTC datetime of last run, 2: link to WPIS Bots run logs */
+					__( 'Last logged run: %1$s (%2$s).', 'wpis-bot-bluesky' ),
+					DocsLinks::external_link_allowed_tags()
+				),
+				esc_html( $at_last ),
+				DocsLinks::admin_anchor( admin_url( 'admin.php?page=wpis-bots-logs' ), __( 'full run log history', 'wpis-bot-bluesky' ) )
 			);
 			echo '</p>';
 		}
