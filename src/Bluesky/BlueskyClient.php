@@ -49,24 +49,30 @@ final class BlueskyClient {
 		$code = wp_remote_retrieve_response_code( $response );
 		$body = wp_remote_retrieve_body( $response );
 		if ( $code < 200 || $code >= 300 ) {
-			$ctx  = HttpRateContext::from_response( $response );
-			$hint = HttpRateContext::format_hint( $ctx );
-			$slug = 429 === (int) $code ? 'wpis_bluesky_auth_ratelimit' : 'wpis_bluesky_auth';
-			return new \WP_Error(
-				$slug,
-				sprintf(
-					/* translators: 1: HTTP status, 2: header hint */
-					__( 'Bluesky auth HTTP %1$d%2$s', 'wpis-bot-bluesky' ),
-					(int) $code,
-					$hint
-				),
-				$ctx
+			$ctx    = HttpRateContext::from_response( $response );
+			$hint   = HttpRateContext::format_hint( $ctx );
+			$slug   = 429 === (int) $code ? 'wpis_bluesky_auth_ratelimit' : 'wpis_bluesky_auth';
+			$detail = self::xrpc_error_body_detail( $body );
+			$msg    = sprintf(
+				/* translators: 1: HTTP status, 2: header hint */
+				__( 'Bluesky auth HTTP %1$d%2$s', 'wpis-bot-bluesky' ),
+				(int) $code,
+				$hint
 			);
+			if ( '' !== $detail ) {
+				$msg .= ' — ' . $detail;
+			}
+			return new \WP_Error( $slug, $msg, $ctx );
 		}
 
 		$data = json_decode( $body, true );
 		if ( ! is_array( $data ) || empty( $data['accessJwt'] ) ) {
-			return new \WP_Error( 'wpis_bluesky_auth', 'Invalid session response.' );
+			$fallback = self::xrpc_error_body_detail( $body );
+			$msg      = __( 'Invalid session response (missing access token).', 'wpis-bot-bluesky' );
+			if ( '' !== $fallback ) {
+				$msg .= ' — ' . $fallback;
+			}
+			return new \WP_Error( 'wpis_bluesky_auth', $msg );
 		}
 
 		return array(
@@ -101,23 +107,29 @@ final class BlueskyClient {
 		$code = wp_remote_retrieve_response_code( $response );
 		$body = wp_remote_retrieve_body( $response );
 		if ( $code < 200 || $code >= 300 ) {
-			$ctx  = HttpRateContext::from_response( $response );
-			$hint = HttpRateContext::format_hint( $ctx );
-			return new \WP_Error(
-				'wpis_bluesky_refresh',
-				sprintf(
-					/* translators: 1: HTTP status, 2: header hint */
-					__( 'Bluesky refresh HTTP %1$d%2$s', 'wpis-bot-bluesky' ),
-					(int) $code,
-					$hint
-				),
-				$ctx
+			$ctx    = HttpRateContext::from_response( $response );
+			$hint   = HttpRateContext::format_hint( $ctx );
+			$detail = self::xrpc_error_body_detail( $body );
+			$msg    = sprintf(
+				/* translators: 1: HTTP status, 2: header hint */
+				__( 'Bluesky refresh HTTP %1$d%2$s', 'wpis-bot-bluesky' ),
+				(int) $code,
+				$hint
 			);
+			if ( '' !== $detail ) {
+				$msg .= ' — ' . $detail;
+			}
+			return new \WP_Error( 'wpis_bluesky_refresh', $msg, $ctx );
 		}
 
 		$data = json_decode( $body, true );
 		if ( ! is_array( $data ) || empty( $data['accessJwt'] ) ) {
-			return new \WP_Error( 'wpis_bluesky_refresh', 'Invalid refresh response.' );
+			$fallback = self::xrpc_error_body_detail( $body );
+			$msg      = __( 'Invalid refresh response (missing access token).', 'wpis-bot-bluesky' );
+			if ( '' !== $fallback ) {
+				$msg .= ' — ' . $fallback;
+			}
+			return new \WP_Error( 'wpis_bluesky_refresh', $msg );
 		}
 
 		return array(
@@ -168,21 +180,27 @@ final class BlueskyClient {
 			$hint   = HttpRateContext::format_hint( $ctx );
 			$slug   = 429 === (int) $code ? 'wpis_bluesky_search_ratelimit' : 'wpis_bluesky_search';
 			$merged = array_merge( $ctx, array( 'status' => (int) $code ) );
-			return new \WP_Error(
-				$slug,
-				sprintf(
-					/* translators: 1: HTTP status, 2: header hint */
-					__( 'Bluesky search HTTP %1$d%2$s', 'wpis-bot-bluesky' ),
-					(int) $code,
-					$hint
-				),
-				$merged
+			$detail = self::xrpc_error_body_detail( $body );
+			$msg    = sprintf(
+				/* translators: 1: HTTP status, 2: header hint */
+				__( 'Bluesky search HTTP %1$d%2$s', 'wpis-bot-bluesky' ),
+				(int) $code,
+				$hint
 			);
+			if ( '' !== $detail ) {
+				$msg .= ' — ' . $detail;
+			}
+			return new \WP_Error( $slug, $msg, $merged );
 		}
 
 		$data = json_decode( $body, true );
 		if ( ! is_array( $data ) ) {
-			return new \WP_Error( 'wpis_bluesky_search', 'Invalid search JSON.' );
+			$fallback = self::xrpc_error_body_detail( $body );
+			$msg      = __( 'Invalid search response (not JSON).', 'wpis-bot-bluesky' );
+			if ( '' !== $fallback ) {
+				$msg .= ' — ' . $fallback;
+			}
+			return new \WP_Error( 'wpis_bluesky_search', $msg );
 		}
 
 		$posts_raw = isset( $data['posts'] ) && is_array( $data['posts'] ) ? $data['posts'] : array();
@@ -245,5 +263,59 @@ final class BlueskyClient {
 		$host   = $parts['host'];
 		$port   = isset( $parts['port'] ) ? ':' . (int) $parts['port'] : '';
 		return $scheme . '://' . $host . $port;
+	}
+
+	/**
+	 * Extracts XRPC error fields (error + message) or a short plain-text fallback for admin messages.
+	 *
+	 * @param string $body Raw HTTP body.
+	 * @return string One line, empty if nothing usable.
+	 */
+	private static function xrpc_error_body_detail( string $body ): string {
+		$body = trim( $body );
+		if ( '' === $body ) {
+			return '';
+		}
+		$data = json_decode( $body, true );
+		if ( is_array( $data ) ) {
+			$err = isset( $data['error'] ) ? trim( (string) $data['error'] ) : '';
+			$msg = isset( $data['message'] ) ? trim( (string) $data['message'] ) : '';
+			$out = '';
+			if ( '' !== $err && '' !== $msg && strcasecmp( $err, $msg ) !== 0 ) {
+				$out = $err . ': ' . $msg;
+			} elseif ( '' !== $msg ) {
+				$out = $msg;
+			} else {
+				$out = $err;
+			}
+			if ( '' !== $out ) {
+				return self::truncate_error_detail( $out );
+			}
+		}
+		$plain = wp_strip_all_tags( $body );
+		$plain = preg_replace( '/\s+/', ' ', $plain );
+		$plain = trim( (string) $plain );
+		if ( '' === $plain ) {
+			return '';
+		}
+		return self::truncate_error_detail( $plain );
+	}
+
+	/**
+	 * @param string $text Raw detail.
+	 * @param int    $max  Max character length (UTF-8 safe when mbstring is available).
+	 * @return string
+	 */
+	private static function truncate_error_detail( string $text, int $max = 400 ): string {
+		if ( function_exists( 'mb_strlen' ) && function_exists( 'mb_substr' ) ) {
+			if ( mb_strlen( $text, 'UTF-8' ) <= $max ) {
+				return $text;
+			}
+			return mb_substr( $text, 0, $max - 3, 'UTF-8' ) . '...';
+		}
+		if ( strlen( $text ) <= $max ) {
+			return $text;
+		}
+		return substr( $text, 0, $max - 3 ) . '...';
 	}
 }
