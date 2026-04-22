@@ -42,7 +42,7 @@ final class MastodonClient {
 	 * @param string $access_token  Optional bearer token.
 	 * @param int    $limit         Max statuses (max 40 typical).
 	 * @param string $max_id        Optional: only statuses older than this id (backfill pagination).
-	 * @return array<int, array{id: string, text: string, url: string}>|\WP_Error
+	 * @return array<int, array{id: string, text: string, url: string, language: string}>|\WP_Error
 	 */
 	public static function fetch_tag_timeline(
 		string $instance_base,
@@ -137,10 +137,14 @@ final class MastodonClient {
 			if ( '' === trim( $text ) ) {
 				continue;
 			}
+			$language = isset( $row['language'] ) && is_string( $row['language'] )
+				? trim( (string) $row['language'] ) : '';
+
 			$out[] = array(
-				'id'   => $id,
-				'text' => $text,
-				'url'  => esc_url_raw( $url ),
+				'id'       => $id,
+				'text'     => $text,
+				'url'      => esc_url_raw( $url ),
+				'language' => $language,
 			);
 		}
 

@@ -7,6 +7,7 @@
 
 namespace WPIS\BotBluesky;
 
+use WPIS\Bots\BotLanguage;
 use WPIS\Bots\CoreDependency;
 use WPIS\Bots\ProcessedRemoteIds;
 use WPIS\Bots\QuoteIngest;
@@ -170,7 +171,7 @@ final class Poller {
 	}
 
 	/**
-	 * @param array<int, array{uri: string, text: string, url?: string}> $posts
+	 * @param array<int, array{uri: string, text: string, url?: string, source_langs?: list<string>}> $posts
 	 * @param array<string, mixed>                                        $settings
 	 * @param array<int, string>                                          $patterns Keyword substrings.
 	 * @param array<string, mixed>                                        $stats
@@ -204,15 +205,23 @@ final class Poller {
 				$url = BlueskyClient::uri_to_web_url( $rid );
 			}
 
+			$api_lang   = '';
+			if ( ! empty( $row['source_langs'] ) && is_array( $row['source_langs'] ) ) {
+				$api_lang = (string) ( $row['source_langs'][0] ?? '' );
+			}
+			$dedup_lang = BotLanguage::normalize_dedup_lang( $api_lang );
+			$pll_slug   = BotLanguage::resolve_polylang_slug( $api_lang, (string) $settings['polylang_slug'] );
+
 			$res = QuoteIngest::process_candidate(
 				array(
 					'text'              => $text,
 					'submission_source' => 'bot-bluesky',
 					'source_platform'   => 'bluesky',
-					'lang'              => 'en',
+					'lang'              => $dedup_lang,
 					'dedup_threshold'   => (int) $settings['dedup_threshold'],
 					'source_url'        => $url,
-					'polylang_slug'     => (string) $settings['polylang_slug'],
+					'polylang_slug'     => $pll_slug,
+					'source_language'   => $dedup_lang,
 				)
 			);
 

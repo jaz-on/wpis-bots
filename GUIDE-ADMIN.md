@@ -43,7 +43,13 @@ Ces comptes servent de **référence** (profil, transparence). Le site WordPress
 5. **Hashtag** : sans le caractère `#`, par exemple `wordpress`.
 6. **Intervalle** : espacement entre deux vérifications. Laissez au moins **10–15 minutes** sauf besoin précis ; les serveurs imposent des plafonds (voir doc limites).
 7. **Mots-clés** : une ligne = une expression que le message doit contenir (ex. `WordPress is`). Si la liste est vide, tout message récupéré peut être proposé (peu recommandé).
-8. **Langue Polylang** : si votre site est multilingue avec Polylang, indiquez le **slug** de la langue (ex. `en` ou `fr`) pour classer les nouvelles citations.
+8. **Langue Polylang** : si votre site est multilingue avec Polylang, indiquez le **slug** de repli (ex. `en` ou `fr`) quand l’API ne donne pas de langue claire. Quand c’est le cas, Mastodon et Bluesky remontent une langue : le plugin la mappe sur vos slugs Polylang, sinon le repli s’applique. Tant que Polylang n’est **pas** actif, le champ est inactif côté WordPress.
+
+### Langue d’origine, anglais pivot et traductions Polylang (aperçu)
+
+- Les brouillons issus des bots peuvent stocker **la langue source** et, si le texte n’est pas en anglais, le **texte d’origine** dans des métas (voyez la colonne *Source lang.* dans le tableau d’administration des citations) pour préparer une version anglaise sur le site.
+- Le cœur WordPress Is… n’inclut **pas** de service de traduction payant. Des extensions peuvent s’abonner au filtre `wpis_bot_translate_to_english` pour remplir le corps en anglais quand la source n’est pas en anglais.
+- **Lier** une citation anglaise et sa traduction dans Polylang (deux billets, deux langues) relève d’un **flux manuel** (créer la traduction dans l’interface Polylang) ou d’un thème d’intégration spécifique (`pll_save_post_translations`, selon la version de Polylang). Les bots n’assemblent pas à eux seuls toutes les paires de traductions du site.
 
 **Avant ou après avoir enregistré**, la zone **« Essayer l’API et lancer un passage »** (en haut de l’écran, sous l’intro) propose :
 

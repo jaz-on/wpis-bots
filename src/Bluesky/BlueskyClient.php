@@ -144,7 +144,7 @@ final class BlueskyClient {
 	 * @param string $query      Search q.
 	 * @param string $cursor     Pagination cursor.
 	 * @param int    $limit      Result limit.
-	 * @return array{posts: array<int, array{uri: string, text: string}>, cursor: string}|\WP_Error
+	 * @return array{posts: array<int, array{uri: string, text: string, source_langs: list<string>, url: string}>, cursor: string}|\WP_Error
 	 */
 	public static function search_posts( string $service, string $access_jwt, string $query, string $cursor = '', int $limit = 25 ) {
 		$url  = $service . '/xrpc/app.bsky.feed.searchPosts';
@@ -219,10 +219,21 @@ final class BlueskyClient {
 			if ( '' === $text ) {
 				continue;
 			}
+			$source_langs = array();
+			if ( isset( $record['langs'] ) && is_array( $record['langs'] ) ) {
+				foreach ( $record['langs'] as $lang_item ) {
+					$lang_item = is_string( $lang_item ) ? trim( $lang_item ) : '';
+					if ( '' === $lang_item ) {
+						continue;
+					}
+					$source_langs[] = $lang_item;
+				}
+			}
 			$out[] = array(
-				'uri'  => $uri,
-				'text' => $text,
-				'url'  => self::uri_to_web_url( $uri ),
+				'uri'          => $uri,
+				'text'         => $text,
+				'url'          => self::uri_to_web_url( $uri ),
+				'source_langs' => $source_langs,
 			);
 		}
 

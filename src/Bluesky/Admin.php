@@ -9,6 +9,7 @@ namespace WPIS\BotBluesky;
 
 use WPIS\Bots\CoreDependency;
 use WPIS\Bots\DocsLinks;
+use WPIS\Bots\PolylangSettings;
 
 /**
  * Settings page.
@@ -128,8 +129,12 @@ final class Admin {
 		$out['keyword_patterns'] = isset( $input['keyword_patterns'] )
 			? sanitize_textarea_field( (string) $input['keyword_patterns'] ) : $defaults['keyword_patterns'];
 
-		$out['polylang_slug'] = isset( $input['polylang_slug'] )
-			? sanitize_key( (string) $input['polylang_slug'] ) : '';
+		if ( PolylangSettings::is_active() ) {
+			$out['polylang_slug'] = isset( $input['polylang_slug'] )
+				? sanitize_key( (string) $input['polylang_slug'] ) : '';
+		} else {
+			$out['polylang_slug'] = '';
+		}
 
 		return $out;
 	}
@@ -606,19 +611,35 @@ final class Admin {
 				</td>
 			</tr>
 			<tr>
-				<th scope="row"><label for="wpis_b_pll"><?php esc_html_e( 'Polylang language slug (optional)', 'wpis-bot-bluesky' ); ?></label></th>
+				<th scope="row">
+					<label for="wpis_b_pll">
+						<?php esc_html_e( 'Polylang language slug (optional)', 'wpis-bot-bluesky' ); ?>
+					</label>
+				</th>
 				<td>
-					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[polylang_slug]" id="wpis_b_pll" type="text" class="regular-text" value="<?php echo esc_attr( (string) $s['polylang_slug'] ); ?>" />
+					<?php
+					$pll_active = PolylangSettings::is_active();
+					$pll_id     = 'wpis_b_pll';
+					?>
+					<?php if ( $pll_active ) : ?>
+					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[polylang_slug]" id="<?php echo esc_attr( $pll_id ); ?>" type="text" class="regular-text" value="<?php echo esc_attr( (string) $s['polylang_slug'] ); ?>" />
+					<?php else : ?>
+					<input name="<?php echo esc_attr( $pll_id ); ?>_dummy" id="<?php echo esc_attr( $pll_id ); ?>" type="text" class="regular-text" value="" readonly disabled />
+					<?php endif; ?>
 					<p class="description">
 						<?php
-						printf(
-							wp_kses(
-								/* translators: %s: link to Polylang language code help */
-								__( 'If Polylang is active, set the content language slug for new drafts, for example en or fr. Leave empty if you are not using Polylang or you want the default in WPIS Core to apply. Find codes under %s.', 'wpis-bot-bluesky' ),
-								DocsLinks::external_link_allowed_tags()
-							),
-							DocsLinks::external_anchor( 'https://polylang.pro/doc/how-to-find-the-language-code-in-polylang/', __( 'Polylang language codes', 'wpis-bot-bluesky' ) )
-						);
+						if ( $pll_active ) {
+							printf(
+								wp_kses(
+									/* translators: %s: link to Polylang language code help */
+									__( 'Set the content language slug for new drafts, for example en or fr. Leave empty to use the default in WPIS Core. Find codes under %s.', 'wpis-bot-bluesky' ),
+									DocsLinks::external_link_allowed_tags()
+								),
+								DocsLinks::external_anchor( 'https://polylang.pro/doc/how-to-find-the-language-code-in-polylang/', __( 'Polylang language codes', 'wpis-bot-bluesky' ) )
+							);
+						} else {
+							esc_html_e( 'Install and activate Polylang to assign a language to drafts.', 'wpis-bot-bluesky' );
+						}
 						?>
 					</p>
 				</td>

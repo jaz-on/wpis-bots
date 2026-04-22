@@ -7,6 +7,7 @@
 
 namespace WPIS\BotMastodon;
 
+use WPIS\Bots\BotLanguage;
 use WPIS\Bots\CoreDependency;
 use WPIS\Bots\ProcessedRemoteIds;
 use WPIS\Bots\QuoteIngest;
@@ -95,7 +96,7 @@ final class Poller {
 	/**
 	 * Process rows from a tag timeline. Stats are merged in place; uses composite post keys per instance.
 	 *
-	 * @param array<int, array{id: string, text: string, url: string}> $items
+	 * @param array<int, array{id: string, text: string, url: string, language?: string}> $items
 	 * @param array<string, mixed>                                   $settings
 	 * @param string                                                 $instance_base
 	 * @param array<string, mixed>                                   $stats
@@ -146,15 +147,20 @@ final class Poller {
 				continue;
 			}
 
+			$api_lang   = isset( $row['language'] ) ? (string) $row['language'] : '';
+			$dedup_lang = BotLanguage::normalize_dedup_lang( $api_lang );
+			$pll_slug   = BotLanguage::resolve_polylang_slug( $api_lang, (string) $settings['polylang_slug'] );
+
 			$res = QuoteIngest::process_candidate(
 				array(
-					'text'                => $text,
+					'text'               => $text,
 					'submission_source'  => 'bot-mastodon',
-					'source_platform'   => 'mastodon',
-					'lang'                => 'en',
-					'dedup_threshold'     => (int) $settings['dedup_threshold'],
+					'source_platform'    => 'mastodon',
+					'lang'               => $dedup_lang,
+					'dedup_threshold'    => (int) $settings['dedup_threshold'],
 					'source_url'         => (string) $row['url'],
-					'polylang_slug'      => (string) $settings['polylang_slug'],
+					'polylang_slug'     => $pll_slug,
+					'source_language'   => $dedup_lang,
 				)
 			);
 
