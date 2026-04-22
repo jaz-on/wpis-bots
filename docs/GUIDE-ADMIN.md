@@ -46,3 +46,8 @@ En bas de page, le **journal des exécutions** résume chaque passage : combie
 ## Besoin d’aide technique ?
 
 Voir le [README principal](../README.md) du dépôt (installation pour développeurs, tests, structure des dossiers).
+
+## Pour aller plus loin
+
+- [Limites des API et bonnes pratiques](LIMITES-API-ET-BONNES-PRATIQUES.md) (liens officiels, 429, intervalles).
+- [Ressources Mastodon et Bluesky](RESSOURCES.md) (documentation officielle, tutoriels communautaires, autres langages).

@@ -4,13 +4,15 @@ Separate GitHub repository for **WordPress Is…** ingestion bots: Mastodon, Blu
 
 Each platform is a **standalone WordPress plugin** in its own directory. Activate them only alongside [**wpis-plugin**](https://github.com/jaz-on/wpis-plugin) (core quotes, dedup via `wpis_find_potential_duplicates`, moderation).
 
-**Human-friendly docs (French):** [Guide administrateur](docs/GUIDE-ADMIN.md) and [Limites des API et bonnes pratiques](docs/LIMITES-API-ET-BONNES-PRATIQUES.md). The WordPress settings screens link to these files on GitHub once the repo is published.
+**Human-friendly docs (French):** [Guide administrateur](docs/GUIDE-ADMIN.md), [limites des API](docs/LIMITES-API-ET-BONNES-PRATIQUES.md) and [ressources officielles / communauté](docs/RESSOURCES.md). The WordPress settings screens link to these files on GitHub (override with the `wpis_bots_docs_base_url` filter if needed).
+
+Ingestion uses **`wpis_submit_quote_candidate()`** from **wpis-plugin** so bots, abilities and future tools share one code path.
 
 ## Layout
 
 | Directory | Role |
 |-----------|------|
-| `docs/` | Administrator guide and API limits (non-developer friendly) |
+| `docs/` | Administrator guide, API limits and curated resource links |
 | `lib/` | Shared ingestion helpers (`QuoteIngest`, idempotence, run logs, text helpers) |
 | `wpis-bot-mastodon/` | Mastodon hashtag timeline polling |
 | `wpis-bot-bluesky/` | Bluesky `searchPosts` polling |

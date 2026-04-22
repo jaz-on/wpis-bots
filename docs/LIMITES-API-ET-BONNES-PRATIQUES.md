@@ -54,3 +54,9 @@ Les clients HTTP des plugins :
 - ajoutent un **User-Agent** décrivant « WPIS Bot » et le site ;
 - transmettent dans les journaux d’erreur des **indices** issus des en-têtes (`Retry-After`, en-têtes Mastodon `X-RateLimit-*` quand présents) pour faciliter le diagnostic ;
 - appliquent un **intervalle minimum** de **10 minutes** entre deux polls configurables côté admin (évite des réglages trop agressifs par mégarde).
+
+L’ingestion des textes vers des citations « en attente » passe par la fonction WordPress **`wpis_submit_quote_candidate()`** fournie par **wpis-plugin** (validation des méta, dédup, hook `wpis_quote_submitted`).
+
+## Autres liens
+
+Liste plus large (officiel + communauté, avec avertissements) : [RESSOURCES.md](RESSOURCES.md).
