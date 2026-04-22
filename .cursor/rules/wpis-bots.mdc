@@ -1,5 +1,5 @@
 ---
-description: Conventions for the wpis-bots WordPress plugin repository
+description: Conventions for the wpis-bots repository (Mastodon + Bluesky, depends on wpis-core)
 globs: packages/wpis-bots/**/*
 alwaysApply: false
 ---
