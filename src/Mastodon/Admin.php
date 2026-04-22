@@ -487,13 +487,9 @@ final class Admin {
 					</p>
 					<p class="description">
 						<?php
-						printf(
-							wp_kses(
-								/* translators: %s: link to Mastodon client applications doc */
-								__( 'Do not enable write or write:statuses — this plugin only downloads the tag timeline and never publishes to Mastodon. Confirm in %s.', 'wpis-bot-mastodon' ),
-								DocsLinks::external_link_allowed_tags()
-							),
-							DocsLinks::external_anchor( 'https://docs.joinmastodon.org/client/intro/', __( 'Mastodon third-party clients', 'wpis-bot-mastodon' ) )
+						esc_html_e(
+							'Do not enable write or write:statuses — this plugin only downloads the tag timeline and never publishes to Mastodon.',
+							'wpis-bot-mastodon'
 						);
 						?>
 					</p>
