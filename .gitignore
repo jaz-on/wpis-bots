@@ -5,4 +5,8 @@
 .vscode/
 *.log
 .DS_Store
+
+# Local maintainer notes (not part of the deployable tree)
+.doc/
+
 /vendor/

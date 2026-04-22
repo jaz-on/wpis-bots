@@ -2,7 +2,7 @@
 
 One **WordPress plugin** (Mastodon + Bluesky ingestion) for **WordPress Is…**. Ships with shared `lib/`, PSR-4 `src/`, and two settings screens. Requires [**WordPress Is… Core**](https://github.com/jaz-on/wpis-core) (folder `wpis-core/`, `wpis-core.php`) and the [**Action Scheduler**](https://wordpress.org/plugins/action-scheduler/) plugin (WordPress lists both under **Plugins →** requirements with WordPress 6.5+).
 
-**Docs (French):** [Guide administrateur](docs/GUIDE-ADMIN.md), [API limits](docs/LIMITES-API-ET-BONNES-PRATIQUES.md), [resources](docs/RESSOURCES.md). Override doc URLs with the `wpis_bots_docs_base_url` filter.
+**Docs (French):** [Guide administrateur](GUIDE-ADMIN.md), [API limits](LIMITES-API-ET-BONNES-PRATIQUES.md), [resources](RESSOURCES.md). Override doc URLs with the `wpis_bots_docs_base_url` filter (value must be a base URL that ends with `/`, for example `https://github.com/jaz-on/wpis-bots/blob/main/`).
 
 Ingestion calls **`wpis_submit_quote_candidate()`** from **WordPress Is… Core** (wpis-core).
 
@@ -11,7 +11,7 @@ Ingestion calls **`wpis_submit_quote_candidate()`** from **WordPress Is… Core*
 | Path | Role |
 |------|------|
 | `wpis-bots.php`, `lib/`, `src/` | **Plugin** (this is what WordPress loads) |
-| `docs/` | Administrator guide (optional on the server) |
+| `GUIDE-ADMIN.md`, `LIMITES-*.md`, `RESSOURCES.md`, `assets/` | Administrator guide in-repo (French); local notes in `.doc/` (gitignored) |
 | `tests/`, `phpunit.xml` | PHPUnit for shared `lib` helpers |
 | `composer.json` | Dev tools (PHPCS, PHPUnit); `vendor/` is gitignored |
 

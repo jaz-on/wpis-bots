@@ -48,12 +48,12 @@ final class DocsLinks {
 	private static function base_url(): string {
 		return (string) apply_filters(
 			'wpis_bots_docs_base_url',
-			'https://github.com/jaz-on/wpis-bots/blob/main/docs/'
+			'https://github.com/jaz-on/wpis-bots/blob/main/'
 		);
 	}
 
 	/**
-	 * Full URL to a file under shipped docs/ on GitHub (respects wpis_bots_docs_base_url).
+	 * Full URL to a shipped markdown file at the repo root on GitHub (respects wpis_bots_docs_base_url).
 	 *
 	 * @param string $file e.g. GUIDE-ADMIN.md
 	 * @return string
