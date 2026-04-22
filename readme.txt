@@ -35,8 +35,8 @@ Override the documentation base URL in your site with the `wpis_bots_docs_base_u
 
 == Installation ==
 
-1. Install and activate [**WordPress Is… Core**](https://github.com/jaz-on/wpis-core) (`wpis-core.php`). The bots plugin will refuse to load without it.
-2. Install and activate the [**Action Scheduler**](https://wordpress.org/plugins/action-scheduler/) plugin. On WordPress 6.5+ this is declared as a required plugin in the bots header.
+1. Install and activate [**WordPress Is… Core**](https://github.com/jaz-on/wpis-core) (`wpis-core.php`). Without it, the admin shows a notice and ingestion does not run until core is active.
+2. **Action Scheduler** is recommended for reliable background jobs; without it the plugin uses WP-Cron and may show an admin notice.
 3. Install **WordPress Is… Bots**:
    * **GitHub ZIP:** on the [repo](https://github.com/jaz-on/wpis-bots) use **Code → Download ZIP**. Upload via **Plugins → Add New → Upload** (or copy the folder into `wp-content/plugins/`). Rename `wpis-bots-main` to `wpis-bots` if you like.
    * **Release asset:** the `wpis-bots.zip` attached to a [GitHub Release](https://github.com/jaz-on/wpis-bots/releases) contains the plugin subtree without `vendor/`.
