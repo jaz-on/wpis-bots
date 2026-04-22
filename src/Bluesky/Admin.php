@@ -35,13 +35,16 @@ final class Admin {
 		if ( function_exists( 'as_schedule_recurring_action' ) ) {
 			return;
 		}
+		if ( class_exists( 'ActionScheduler_Versions', false ) ) {
+			return;
+		}
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 		if ( ! $screen || 'settings_page_' . self::SLUG !== $screen->id ) {
 			return;
 		}
 		echo '<div class="notice notice-warning"><p>';
 		echo esc_html__(
-			'Action Scheduler is not loaded. Install the Action Scheduler plugin for reliable bot scheduling, or the site will fall back to WP-Cron.',
+			'Action Scheduler is not available. From the wpis-bots package run composer install (see vendor/woocommerce/action-scheduler), install the Action Scheduler plugin, or the site will fall back to WP-Cron.',
 			'wpis-bot-bluesky'
 		);
 		echo '</p></div>';

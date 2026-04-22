@@ -1,11 +1,11 @@
 <?php
 /**
- * Mastodon bot bootstrap.
+ * Bluesky bot bootstrap.
  *
- * @package WPIS\BotMastodon
+ * @package WPIS\BotBluesky
  */
 
-namespace WPIS\BotMastodon;
+namespace WPIS\BotBluesky;
 
 /**
  * Registers hooks once WPIS Core is available.
@@ -20,7 +20,7 @@ final class Plugin {
 	}
 
 	/**
-	 * Ensure wpis-plugin is loaded; surface an admin notice otherwise.
+	 * Ensure wpis-plugin is loaded.
 	 */
 	public function bootstrap(): void {
 		if ( ! function_exists( 'wpis_find_potential_duplicates' ) ) {
@@ -29,8 +29,8 @@ final class Plugin {
 				static function () {
 					echo '<div class="notice notice-error"><p>';
 					esc_html_e(
-						'WPIS Bot (Mastodon) requires the WPIS Core plugin. Install and activate wpis-plugin.',
-						'wpis-bot-mastodon'
+						'WPIS Bots requires the WPIS Core plugin. Install and activate wpis-plugin.',
+						'wpis-bots'
 					);
 					echo '</p></div>';
 				}

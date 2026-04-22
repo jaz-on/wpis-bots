@@ -1,11 +1,10 @@
 ---
-description: WPIS ingestion bots (Mastodon, Bluesky)
-globs: packages/wpis-bots/**
+description: Conventions for the wpis-bots WordPress plugin repository
+globs: packages/wpis-bots/**/*
+alwaysApply: false
 ---
 
-# WPIS bots rules
+# WPIS Bots
 
-- **Layout**: `wpis-bot-mastodon/` and `wpis-bot-bluesky/` are separate plugin roots; shared code in `lib/`.
-- **Dependency**: requires [**wpis-plugin**](https://github.com/jaz-on/wpis-plugin) active (quotes CPT, `wpis_find_potential_duplicates`, counter sync). Ingestion uses `wpis_submit_quote_candidate()` from core.
-- **Docs**: ship with `docs/` in this repo (admin guide, API limits). Workspace mirror: `workspace/docs/wpis-bots/README.md`.
-- **English copy**: workspace `.cursor/rules/no-oxford-comma-english.mdc` for user-facing strings.
+- **Layout**: this repository **is** the plugin root (`wpis-bots.php`, `lib/`, `src/Mastodon/`, `src/Bluesky/`, Composer `vendor/`). `docs/`, `tests/` and `phpunit.xml` sit beside the plugin files for the repo only.
+- **Do not** reintroduce a nested `wpis-bots/wpis-bots/` plugin folder or split `wpis-bot-mastodon/` / `wpis-bot-bluesky/` as separate plugin roots without an explicit migration.

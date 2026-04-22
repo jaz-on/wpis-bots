@@ -1,67 +1,44 @@
 # WPIS Bots
 
-Separate GitHub repository for **WordPress Is…** ingestion bots: Mastodon, Bluesky and future platforms.
+One **WordPress plugin** (Mastodon + Bluesky ingestion) for **WordPress Is…**. Ships with shared `lib/`, **Action Scheduler** via Composer, and two settings screens. Requires [**wpis-plugin**](https://github.com/jaz-on/wpis-plugin) (core quotes, dedup, moderation).
 
-Each platform is a **standalone WordPress plugin** in its own directory. Activate them only alongside [**wpis-plugin**](https://github.com/jaz-on/wpis-plugin) (core quotes, dedup via `wpis_find_potential_duplicates`, moderation).
+**Docs (French):** [Guide administrateur](docs/GUIDE-ADMIN.md), [API limits](docs/LIMITES-API-ET-BONNES-PRATIQUES.md), [resources](docs/RESSOURCES.md). Override doc URLs with the `wpis_bots_docs_base_url` filter.
 
-**Human-friendly docs (French):** [Guide administrateur](docs/GUIDE-ADMIN.md), [limites des API](docs/LIMITES-API-ET-BONNES-PRATIQUES.md) and [ressources officielles / communauté](docs/RESSOURCES.md). The WordPress settings screens link to these files on GitHub (override with the `wpis_bots_docs_base_url` filter if needed).
+Ingestion calls **`wpis_submit_quote_candidate()`** from wpis-plugin.
 
-Ingestion uses **`wpis_submit_quote_candidate()`** from **wpis-plugin** so bots, abilities and future tools share one code path.
+## Repository layout
 
-## Layout
-
-| Directory | Role |
-|-----------|------|
-| `docs/` | Administrator guide, API limits and curated resource links |
-| `lib/` | Shared ingestion helpers (`QuoteIngest`, idempotence, run logs, text helpers) |
-| `wpis-bot-mastodon/` | Mastodon hashtag timeline polling |
-| `wpis-bot-bluesky/` | Bluesky `searchPosts` polling |
+| Path | Role |
+|------|------|
+| `wpis-bots.php`, `lib/`, `src/`, `vendor/` | **Plugin** (this is what WordPress loads) |
+| `docs/` | Administrator guide (GitHub only; not required on the server) |
+| `tests/`, `phpunit.xml` | PHPUnit for shared `lib` helpers |
 
 ## Requirements
 
 - WordPress 6.9+ and PHP 8.2+
-- **wpis-plugin** active (quotes CPT, meta, counter sync)
-- **[Action Scheduler](https://wordpress.org/plugins/action-scheduler/)** recommended; without it the bots fall back to WP-Cron
-- Optional: **Polylang** if you set a default language slug in bot settings
+- **wpis-plugin** active
+- After `composer install --no-dev`, **Action Scheduler** is in `vendor/`. Without it, use the standalone [Action Scheduler](https://wordpress.org/plugins/action-scheduler/) plugin or WP-Cron fallback
+- Optional: **Polylang** (language slug in bot settings)
 
-## Behaviour
+## Install (classic upload)
 
-- Polls run on a configurable interval (**10–120 minutes** by default safeguards) when the bot is **enabled** in Settings.
-- New candidates become `pending` quotes with `_wpis_submission_source` `bot-mastodon` or `bot-bluesky`, `_wpis_source_platform` set and optional `_wpis_source_domain` from the post URL.
-- Near-duplicates (score ≥ threshold) **bump** `_wpis_counter` on the existing quote instead of creating a post (Polylang siblings sync via core `CounterSync`).
-- Successful creates fire `do_action( 'wpis_quote_submitted', $post_id )` like the public form.
-- Remote post IDs are tracked in a bounded ring buffer to limit double-processing when jobs replay.
+1. **Production zip (recommended):** use the **`wpis-bots.zip`** asset attached to a [GitHub Release](https://github.com/jaz-on/wpis-bots/releases) (built by CI with `composer install --no-dev`). In WordPress: **Plugins → Add New → Upload** → activate **WordPress Is… Bots**.
 
-**Wait until the site has enough seeded quotes** (Chantier 10 baseline, about 50) before enabling bots in production so dedup and filters behave sensibly.
+2. **From a git clone:** run `composer install --no-dev`, then zip a folder named `wpis-bots` containing only: `wpis-bots.php`, `composer.json`, `composer.lock`, `lib/`, `src/`, `vendor/`. Upload that zip (same as the release asset layout).
 
-## Install
+3. Re-save **Settings → WPIS Mastodon Bot** and **WPIS Bluesky Bot** once after upgrades so schedules register.
 
-1. Copy or symlink `wpis-bot-mastodon` and/or `wpis-bot-bluesky` into `wp-content/plugins/`.
-2. Run `composer install --no-dev` inside each plugin you deploy (or commit `vendor` only if your deploy pipeline requires it).
-3. Activate the plugin(s). Re-save **Settings → WPIS … Bot** once to register schedules after upgrades.
-4. Store **Bluesky app passwords** and **Mastodon tokens** only in the WordPress options UI; never commit them. Logs intentionally omit secrets.
+## Git Updater
 
-## Configuration notes
-
-- **Mastodon:** public tag timeline; optional bearer token if your instance requires auth for that endpoint.
-- **Bluesky:** handle (or email) + app password; JWT cached in a transient between polls with refresh on 401/403 when a refresh token is available.
-- **Keywords:** one substring per line; empty list means “accept all fetched posts that pass other checks”.
-- **Dedup threshold:** passed to `wpis_find_potential_duplicates` (0–100).
+The main file **`wpis-bots.php` is at the repository root**, so `GitHub Plugin URI: https://github.com/jaz-on/wpis-bots` matches what [Git Updater](https://github.com/afragen/github-updater) expects. Prefer **release ZIPs** for updates if you want a clean tree without `docs/` or `tests/` on the server.
 
 ## Development
 
-Per plugin:
-
 ```bash
-cd wpis-bot-mastodon && composer install && composer lint
-```
-
-Repo root (shared lib unit tests):
-
-```bash
-composer install && composer test
+composer install && composer lint && composer test
 ```
 
 ## Action Scheduler vs WP-Cron
 
-If Action Scheduler is present, bots register recurring actions in the `wpis-bots` group. Otherwise WordPress cron schedules a custom interval. Deactivating a bot plugin clears its Action Scheduler hooks and WP-Cron events.
+With Action Scheduler available (bundled, standalone plugin or e.g. WooCommerce), bots use the `wpis-bots` group. Otherwise WP-Cron runs the polls. Deactivating **WordPress Is… Bots** clears both bots’ schedules.

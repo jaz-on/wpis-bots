@@ -1,27 +1,40 @@
 <?php
 /**
- * Plugin Name: WordPress Is… Bot (Mastodon)
- * Description: Discovers quote candidates on Mastodon and submits them to WPIS Core for moderation.
+ * Plugin Name: WordPress Is… Bots
+ * Description: Mastodon and Bluesky ingestion bots for WPIS Core — quote candidates for moderation.
  * Version: 0.1.0
  * Author: Jasonnade
  * Author URI: https://jasonrouet.com
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: wpis-bot-mastodon
+ * Text Domain: wpis-bots
  * Requires at least: 6.9
  * Requires PHP: 8.2
  * Requires Plugins: wpis-plugin
+ * GitHub Plugin URI: https://github.com/jaz-on/wpis-bots
+ * Primary Branch: main
  *
- * @package WPIS\BotMastodon
+ * @package WPIS\Bots
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! defined( 'WPIS_BOTS_LIB_DIR' ) ) {
-	define( 'WPIS_BOTS_LIB_DIR', dirname( __DIR__ ) . '/lib' );
+if ( ! defined( 'WPIS_BOTS_PLUGIN_FILE' ) ) {
+	define( 'WPIS_BOTS_PLUGIN_FILE', __FILE__ );
 }
+
+if ( ! defined( 'WPIS_BOTS_DIR' ) ) {
+	define( 'WPIS_BOTS_DIR', __DIR__ );
+}
+
+if ( ! defined( 'WPIS_BOTS_LIB_DIR' ) ) {
+	define( 'WPIS_BOTS_LIB_DIR', WPIS_BOTS_DIR . '/lib' );
+}
+
+require_once WPIS_BOTS_LIB_DIR . '/ActionSchedulerBootstrap.php';
+\WPIS\Bots\ActionSchedulerBootstrap::load();
 
 require_once WPIS_BOTS_LIB_DIR . '/DocsLinks.php';
 require_once WPIS_BOTS_LIB_DIR . '/HttpRateContext.php';
@@ -30,17 +43,21 @@ require_once WPIS_BOTS_LIB_DIR . '/ProcessedRemoteIds.php';
 require_once WPIS_BOTS_LIB_DIR . '/RunLogger.php';
 require_once WPIS_BOTS_LIB_DIR . '/QuoteIngest.php';
 
-if ( is_readable( __DIR__ . '/vendor/autoload.php' ) ) {
-	require_once __DIR__ . '/vendor/autoload.php';
+if ( is_readable( WPIS_BOTS_DIR . '/vendor/autoload.php' ) ) {
+	require_once WPIS_BOTS_DIR . '/vendor/autoload.php';
 }
 
 add_filter( 'cron_schedules', array( \WPIS\BotMastodon\Scheduler::class, 'add_cron_schedules' ) );
+add_filter( 'cron_schedules', array( \WPIS\BotBluesky\Scheduler::class, 'add_cron_schedules' ) );
 
 register_activation_hook(
 	__FILE__,
 	static function () {
 		if ( class_exists( '\WPIS\BotMastodon\Scheduler' ) ) {
 			\WPIS\BotMastodon\Scheduler::activate();
+		}
+		if ( class_exists( '\WPIS\BotBluesky\Scheduler' ) ) {
+			\WPIS\BotBluesky\Scheduler::activate();
 		}
 	}
 );
@@ -51,9 +68,15 @@ register_deactivation_hook(
 		if ( class_exists( '\WPIS\BotMastodon\Scheduler' ) ) {
 			\WPIS\BotMastodon\Scheduler::deactivate();
 		}
+		if ( class_exists( '\WPIS\BotBluesky\Scheduler' ) ) {
+			\WPIS\BotBluesky\Scheduler::deactivate();
+		}
 	}
 );
 
 if ( class_exists( '\WPIS\BotMastodon\Plugin' ) ) {
 	( new \WPIS\BotMastodon\Plugin() )->register();
+}
+if ( class_exists( '\WPIS\BotBluesky\Plugin' ) ) {
+	( new \WPIS\BotBluesky\Plugin() )->register();
 }

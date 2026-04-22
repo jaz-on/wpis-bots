@@ -2,17 +2,37 @@
 
 Ce texte s’adresse aux personnes qui configurent le site, **sans supposer de connaissances techniques**. Les détails sur les limites des réseaux sociaux sont dans [LIMITES-API-ET-BONNES-PRATIQUES.md](LIMITES-API-ET-BONNES-PRATIQUES.md).
 
-## À quoi servent ces plugins ?
+## À quoi sert cette extension ?
 
-Deux extensions séparées permettent de **repérer sur les réseaux** des messages publics qui ressemblent à des citations du type « WordPress is… ». Elles **n’affichent rien sur Mastodon ou Bluesky** : elles copient seulement le texte vers votre site WordPress, en **brouillon à modérer** (statut « en attente »), comme une suggestion soumise par un contributeur.
+Une seule extension, **WordPress Is… Bots**, ajoute **deux écrans de réglages** (Mastodon et Bluesky) pour **repérer sur les réseaux** des messages publics qui ressemblent à des citations du type « WordPress is… ». Elle **n’affiche rien sur Mastodon ou Bluesky** : elle copie seulement le texte vers votre site WordPress, en **brouillon à modérer** (statut « en attente »), comme une suggestion soumise par un contributeur.
 
 Sans modération humaine, **rien ne doit être publié automatiquement** sur le site public.
+
+## Comptes officiels du projet
+
+- **Mastodon** : [https://mastodon.social/@wpis](https://mastodon.social/@wpis)
+- **Bluesky** : [https://bsky.app/profile/wpis.bsky.social](https://bsky.app/profile/wpis.bsky.social)
+
+Avatar commun **400×400** px (fond crème, « WordPress **is**… » aux couleurs du site) : [assets/wpis-social-avatar.png](assets/wpis-social-avatar.png) — adapté au recadrage circulaire Mastodon / Bluesky.
+
+Ces comptes servent de **référence** (profil, transparence). Le site WordPress n’a pas besoin des mots de passe de ces comptes, seulement des valeurs listées ci‑dessous.
+
+### Ce que WordPress doit recevoir
+
+| Plateforme | À fournir | Détail |
+|------------|-----------|--------|
+| **Mastodon** | URL d’instance | `https://mastodon.social` pour ce compte. |
+| **Mastodon** | Hashtag | Sans `#`, celui que vous suivez pour le projet (ex. `wordpress`). |
+| **Mastodon** | Jeton d’accès | Souvent **vide** si le fil public du hashtag se lit sans compte. Si l’instance ou le réglage exige une authentification, connectez-vous avec **@wpis**, créez une **application** (Paramètres → Développement), droits **lecture**, et collez le **jeton d’accès** dans Réglages → WPIS Mastodon Bot. |
+| **Bluesky** | Identifiant | `wpis.bsky.social` (le handle du compte, pas l’URL complète du profil). |
+| **Bluesky** | Mot de passe d’application | Créé dans l’app Bluesky pour le compte **wpis** (Paramètres → mots de passe d’application). **Pas** le mot de passe principal du compte. |
+| **Bluesky** | URL du service | `https://bsky.social` sauf hébergement ATproto personnalisé. |
 
 ## Avant d’activer les bots
 
 1. **Le plugin principal « WordPress Is… Core »** (`wpis-plugin`) doit être installé et actif.
 2. Il est recommandé d’avoir **déjà du contenu validé** sur le site (citations modérées). Cela aide le système à repérer les doublons et à garder une base saine.
-3. Installez de préférence **Action Scheduler** (extension WordPress). Sinon le site utilisera la planification WordPress classique, un peu moins fiable sur les petits sites peu visités.
+3. **Planification** : l’extension embarque Action Scheduler dans son dossier `vendor/` après `composer install` (ou via le **zip de release** GitHub déjà prêt). Sans ces fichiers, installez l’extension **Action Scheduler** à la place ; sinon le site utilisera la planification WordPress classique, un peu moins fiable sur les petits sites peu visités.
 
 ## Mastodon — réglages simples
 
