@@ -459,7 +459,7 @@ final class Admin {
 								__( 'When on, the site runs a recurring job to read the public hashtag stream and may create or bump quote drafts. When off, the schedule is idle, but Test connection and manual poll (below) still work for debugging. Options and limits: %1$s. New to Mastodon: %2$s.', 'wpis-bot-mastodon' ),
 								DocsLinks::external_link_allowed_tags()
 							),
-							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'GUIDE-ADMIN.md' ), __( 'WPIS Bots admin guide (GitHub)', 'wpis-bot-mastodon' ) ),
+							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'guide-admin.md' ), __( 'WPIS Bots admin guide (GitHub)', 'wpis-bot-mastodon' ) ),
 							DocsLinks::external_anchor( 'https://joinmastodon.org/', __( 'joinmastodon.org', 'wpis-bot-mastodon' ) )
 						);
 						?>
@@ -613,7 +613,7 @@ final class Admin {
 								__( 'Passed to WPIS Core when a candidate might match an existing quote. Higher means a closer match is needed before a post is treated as a duplicate and bumped instead of a new draft. 0 to 100. See %s.', 'wpis-bot-mastodon' ),
 								DocsLinks::external_link_allowed_tags()
 							),
-							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'GUIDE-ADMIN.md' ), __( 'WPIS Bots admin guide (GitHub)', 'wpis-bot-mastodon' ) )
+							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'guide-admin.md' ), __( 'WPIS Bots admin guide (GitHub)', 'wpis-bot-mastodon' ) )
 						);
 						?>
 					</p>
@@ -631,7 +631,7 @@ final class Admin {
 								__( 'Each line is a substring match (case-insensitive). A post that came from the hashtag must still match at least one non-empty line. If every line is empty, the code treats the match as true for all posts, so keep real patterns unless you know you want that. Pacing and quotas: %s.', 'wpis-bot-mastodon' ),
 								DocsLinks::external_link_allowed_tags()
 							),
-							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'LIMITES-API-ET-BONNES-PRATIQUES.md' ), __( 'API limits and good practice (GitHub)', 'wpis-bot-mastodon' ) )
+							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'limites-api-et-bonnes-pratiques.md' ), __( 'API limits and good practice (GitHub)', 'wpis-bot-mastodon' ) )
 						);
 						?>
 					</p>

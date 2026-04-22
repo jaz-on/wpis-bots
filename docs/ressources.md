@@ -37,4 +37,4 @@ Ces pages peuvent être utiles pour **comprendre** les bots ou pour des stacks a
 
 Les plugins **WordPress Is…** ici restent en **PHP** avec les API HTTP documentées ; ils ne dépendent pas des bibliothèques listées pour d’autres langages. En cas de doute sur les limites ou les règles, **priorité aux pages officielles** et aux conditions de votre instance ou compte.
 
-Voir aussi [LIMITES-API-ET-BONNES-PRATIQUES.md](LIMITES-API-ET-BONNES-PRATIQUES.md) et [GUIDE-ADMIN.md](GUIDE-ADMIN.md).
+Voir aussi [limites-api-et-bonnes-pratiques.md](limites-api-et-bonnes-pratiques.md) et [guide-admin.md](guide-admin.md).

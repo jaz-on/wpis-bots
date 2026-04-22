@@ -1,6 +1,6 @@
 # Guide administrateur — bots WordPress Is…
 
-Ce texte s’adresse aux personnes qui configurent le site, **sans supposer de connaissances techniques**. Les détails sur les limites des réseaux sociaux sont dans [LIMITES-API-ET-BONNES-PRATIQUES.md](LIMITES-API-ET-BONNES-PRATIQUES.md).
+Ce texte s’adresse aux personnes qui configurent le site, **sans supposer de connaissances techniques**. Les détails sur les limites des réseaux sociaux sont dans [limites-api-et-bonnes-pratiques.md](limites-api-et-bonnes-pratiques.md).
 
 ## À quoi sert cette extension ?
 
@@ -13,7 +13,7 @@ Sans modération humaine, **rien ne doit être publié automatiquement** sur le 
 - **Mastodon** : [https://mastodon.social/@wpis](https://mastodon.social/@wpis)
 - **Bluesky** : [https://bsky.app/profile/wpis.bsky.social](https://bsky.app/profile/wpis.bsky.social)
 
-Avatar commun **400×400** px (fond crème, « **WP** **is**… » aux couleurs du site) : [assets/wpis-social-avatar.png](assets/wpis-social-avatar.png) — adapté au recadrage circulaire Mastodon / Bluesky.
+Avatar commun **400×400** px (fond crème, « **WP** **is**… » aux couleurs du site) : [../assets/wpis-social-avatar.png](../assets/wpis-social-avatar.png) — adapté au recadrage circulaire Mastodon / Bluesky.
 
 Ces comptes servent de **référence** (profil, transparence). Le site WordPress n’a pas besoin des mots de passe de ces comptes, seulement des valeurs listées ci‑dessous.
 
@@ -80,5 +80,5 @@ Voir le [README principal](../README.md) du dépôt (installation pour développ
 
 ## Pour aller plus loin
 
-- [Limites des API et bonnes pratiques](LIMITES-API-ET-BONNES-PRATIQUES.md) (liens officiels, 429, intervalles).
-- [Ressources Mastodon et Bluesky](RESSOURCES.md) (documentation officielle, tutoriels communautaires, autres langages).
+- [Limites des API et bonnes pratiques](limites-api-et-bonnes-pratiques.md) (liens officiels, 429, intervalles).
+- [Ressources Mastodon et Bluesky](ressources.md) (documentation officielle, tutoriels communautaires, autres langages).

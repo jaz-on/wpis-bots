@@ -59,4 +59,4 @@ L’ingestion des textes vers des citations « en attente » passe par la fo
 
 ## Autres liens
 
-Liste plus large (officiel + communauté, avec avertissements) : [RESSOURCES.md](RESSOURCES.md).
+Liste plus large (officiel + communauté, avec avertissements) : [ressources.md](ressources.md).

@@ -447,7 +447,7 @@ final class Admin {
 								__( 'When on, the site runs a recurring job to search Bluesky and may create or bump quote drafts. When off, that schedule does not run, but the Test connection and manual poll actions (below) still work for debugging. Options and limits: %s.', 'wpis-bot-bluesky' ),
 								DocsLinks::external_link_allowed_tags()
 							),
-							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'GUIDE-ADMIN.md' ), __( 'WPIS Bots admin guide (GitHub)', 'wpis-bot-bluesky' ) )
+							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'guide-admin.md' ), __( 'WPIS Bots admin guide (GitHub)', 'wpis-bot-bluesky' ) )
 						);
 						?>
 					</p>
@@ -586,7 +586,7 @@ final class Admin {
 								__( 'Passed to WPIS Core when a candidate might match an existing quote. Higher means a closer match is needed before a post is treated as a duplicate (bump) instead of a new draft. 0 to 100. See %s.', 'wpis-bot-bluesky' ),
 								DocsLinks::external_link_allowed_tags()
 							),
-							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'GUIDE-ADMIN.md' ), __( 'WPIS Bots admin guide (GitHub)', 'wpis-bot-bluesky' ) )
+							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'guide-admin.md' ), __( 'WPIS Bots admin guide (GitHub)', 'wpis-bot-bluesky' ) )
 						);
 						?>
 					</p>
@@ -604,7 +604,7 @@ final class Admin {
 								__( 'Each line is a substring match (case-insensitive). The post must match at least one non-empty line. If every line is empty, the code treats the match as true for all posts, so keep real patterns unless you know you want that. Pacing and quotas: %s.', 'wpis-bot-bluesky' ),
 								DocsLinks::external_link_allowed_tags()
 							),
-							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'LIMITES-API-ET-BONNES-PRATIQUES.md' ), __( 'API limits and good practice (GitHub)', 'wpis-bot-bluesky' ) )
+							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'limites-api-et-bonnes-pratiques.md' ), __( 'API limits and good practice (GitHub)', 'wpis-bot-bluesky' ) )
 						);
 						?>
 					</p>
