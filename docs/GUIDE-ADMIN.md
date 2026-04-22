@@ -13,7 +13,7 @@ Sans modération humaine, **rien ne doit être publié automatiquement** sur le 
 - **Mastodon** : [https://mastodon.social/@wpis](https://mastodon.social/@wpis)
 - **Bluesky** : [https://bsky.app/profile/wpis.bsky.social](https://bsky.app/profile/wpis.bsky.social)
 
-Avatar commun **400×400** px (fond crème, « WordPress **is**… » aux couleurs du site) : [assets/wpis-social-avatar.png](assets/wpis-social-avatar.png) — adapté au recadrage circulaire Mastodon / Bluesky.
+Avatar commun **400×400** px (fond crème, « **WP** **is**… » aux couleurs du site) : [assets/wpis-social-avatar.png](assets/wpis-social-avatar.png) — adapté au recadrage circulaire Mastodon / Bluesky.
 
 Ces comptes servent de **référence** (profil, transparence). Le site WordPress n’a pas besoin des mots de passe de ces comptes, seulement des valeurs listées ci‑dessous.
 
@@ -32,7 +32,7 @@ Ces comptes servent de **référence** (profil, transparence). Le site WordPress
 
 1. **Le plugin principal « WordPress Is… Core »** (`wpis-plugin`) doit être installé et actif.
 2. Il est recommandé d’avoir **déjà du contenu validé** sur le site (citations modérées). Cela aide le système à repérer les doublons et à garder une base saine.
-3. **Planification** : l’extension embarque Action Scheduler dans son dossier `vendor/` après `composer install` (ou via le **zip de release** GitHub déjà prêt). Sans ces fichiers, installez l’extension **Action Scheduler** à la place ; sinon le site utilisera la planification WordPress classique, un peu moins fiable sur les petits sites peu visités.
+3. **Planification** : l’extension embarque Action Scheduler dans `vendor/` (fourni dans le zip GitHub / le dépôt). Sans ce dossier, installez l’extension **Action Scheduler** à la place ; sinon le site utilisera la planification WordPress classique, un peu moins fiable sur les petits sites peu visités.
 
 ## Mastodon — réglages simples
 
