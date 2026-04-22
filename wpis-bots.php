@@ -36,6 +36,7 @@ if ( ! defined( 'WPIS_BOTS_LIB_DIR' ) ) {
 require_once WPIS_BOTS_LIB_DIR . '/ActionSchedulerBootstrap.php';
 \WPIS\Bots\ActionSchedulerBootstrap::load();
 
+require_once WPIS_BOTS_LIB_DIR . '/BotsAdminMenu.php';
 require_once WPIS_BOTS_LIB_DIR . '/DocsLinks.php';
 require_once WPIS_BOTS_LIB_DIR . '/HttpRateContext.php';
 require_once WPIS_BOTS_LIB_DIR . '/TextHelper.php';
@@ -74,9 +75,22 @@ register_deactivation_hook(
 	}
 );
 
-if ( class_exists( '\WPIS\BotMastodon\Plugin' ) ) {
+if ( ! class_exists( '\WPIS\BotMastodon\Plugin', true ) || ! class_exists( '\WPIS\BotBluesky\Plugin', true ) ) {
+	add_action(
+		'admin_notices',
+		static function () {
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return;
+			}
+			echo '<div class="notice notice-error"><p>';
+			esc_html_e(
+				'WPIS Bots: vendor/autoload.php is missing or incomplete. Reinstall the plugin from a full GitHub ZIP or run composer install in the plugin directory.',
+				'wpis-bots'
+			);
+			echo '</p></div>';
+		}
+	);
+} else {
 	( new \WPIS\BotMastodon\Plugin() )->register();
-}
-if ( class_exists( '\WPIS\BotBluesky\Plugin' ) ) {
 	( new \WPIS\BotBluesky\Plugin() )->register();
 }

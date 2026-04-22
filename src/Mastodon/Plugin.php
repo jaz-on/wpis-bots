@@ -7,6 +7,8 @@
 
 namespace WPIS\BotMastodon;
 
+use WPIS\Bots\BotsAdminMenu;
+
 /**
  * Registers hooks once WPIS Core is available.
  */
@@ -16,14 +18,14 @@ final class Plugin {
 	 * Wire WordPress hooks.
 	 */
 	public function register(): void {
-		add_action( 'plugins_loaded', array( $this, 'bootstrap' ), 20 );
+		add_action( 'plugins_loaded', array( $this, 'bootstrap' ), 100 );
 	}
 
 	/**
 	 * Ensure wpis-plugin is loaded; surface an admin notice otherwise.
 	 */
 	public function bootstrap(): void {
-		if ( ! function_exists( 'wpis_find_potential_duplicates' ) ) {
+		if ( ! function_exists( 'wpis_submit_quote_candidate' ) ) {
 			add_action(
 				'admin_notices',
 				static function () {
@@ -38,6 +40,7 @@ final class Plugin {
 			return;
 		}
 
+		BotsAdminMenu::register();
 		Scheduler::register_hooks();
 		Admin::register();
 	}

@@ -27,7 +27,7 @@ Ingestion calls **`wpis_submit_quote_candidate()`** from wpis-plugin.
 
 2. **Release asset:** the **`wpis-bots.zip`** attached to a [GitHub Release](https://github.com/jaz-on/wpis-bots/releases) contains only the plugin subtree (`wpis-bots/wpis-bots.php` …) — same WordPress upload flow, slightly smaller.
 
-3. After an upgrade, re-save **Settings → WPIS Mastodon Bot** and **WPIS Bluesky Bot** once so schedules register.
+3. After an upgrade, re-save **WPIS Bots → Mastodon** and **WPIS Bots → Bluesky** once so schedules register.
 
 ## Git Updater
 

@@ -20,7 +20,6 @@ final class Admin {
 	 * @return void
 	 */
 	public static function register(): void {
-		add_action( 'admin_menu', array( self::class, 'menu' ) );
 		add_action( 'admin_init', array( self::class, 'register_settings' ) );
 		add_action( 'admin_notices', array( self::class, 'notice_action_scheduler' ) );
 	}
@@ -39,7 +38,7 @@ final class Admin {
 			return;
 		}
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-		if ( ! $screen || 'settings_page_' . self::SLUG !== $screen->id ) {
+		if ( ! $screen || 'toplevel_page_' . self::SLUG !== $screen->id ) {
 			return;
 		}
 		echo '<div class="notice notice-warning"><p>';
@@ -48,19 +47,6 @@ final class Admin {
 			'wpis-bot-mastodon'
 		);
 		echo '</p></div>';
-	}
-
-	/**
-	 * @return void
-	 */
-	public static function menu(): void {
-		add_options_page(
-			__( 'WPIS Mastodon Bot', 'wpis-bot-mastodon' ),
-			__( 'WPIS Mastodon Bot', 'wpis-bot-mastodon' ),
-			'manage_options',
-			self::SLUG,
-			array( self::class, 'render_page' )
-		);
 	}
 
 	/**

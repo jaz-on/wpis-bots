@@ -23,7 +23,7 @@ Ces comptes servent de **référence** (profil, transparence). Le site WordPress
 |------------|-----------|--------|
 | **Mastodon** | URL d’instance | `https://mastodon.social` pour ce compte. |
 | **Mastodon** | Hashtag | Sans `#`, celui que vous suivez pour le projet (ex. `wordpress`). |
-| **Mastodon** | Jeton d’accès | Souvent **vide** si le fil public du hashtag se lit sans compte. Si l’instance ou le réglage exige une authentification, connectez-vous avec **@wpis**, créez une **application** (Paramètres → Développement), droits **lecture**, et collez le **jeton d’accès** dans Réglages → WPIS Mastodon Bot. |
+| **Mastodon** | Jeton d’accès | Souvent **vide** si le fil public du hashtag se lit sans compte. Si l’instance ou le réglage exige une authentification, connectez-vous avec **@wpis**, créez une **application** (Paramètres → Développement), droits **lecture**, et collez le **jeton d’accès** dans **WPIS Bots → Mastodon**. |
 | **Bluesky** | Identifiant | `wpis.bsky.social` (le handle du compte, pas l’URL complète du profil). |
 | **Bluesky** | Mot de passe d’application | Créé dans l’app Bluesky pour le compte **wpis** (Paramètres → mots de passe d’application). **Pas** le mot de passe principal du compte. |
 | **Bluesky** | URL du service | `https://bsky.social` sauf hébergement ATproto personnalisé. |
@@ -36,7 +36,7 @@ Ces comptes servent de **référence** (profil, transparence). Le site WordPress
 
 ## Mastodon — réglages simples
 
-1. Dans WordPress, menu **Réglages → WPIS Mastodon Bot**.
+1. Dans WordPress, menu latéral **WPIS Bots → Mastodon** (ou l’onglet Mastodon sous **WPIS Bots**).
 2. **Activer le bot** seulement quand la configuration est prête.
 3. **URL de l’instance** : l’adresse du serveur Mastodon (souvent `https://mastodon.social` ou celui de votre communauté). Respectez les règles de cette instance (certaines n’aiment pas les comptes ou scripts trop gourmands en requêtes).
 4. **Jeton d’accès** : souvent vide si la ligne de temps du **hashtag public** est lisible sans compte. Sinon créez un compte applicatif sur l’instance et collez le jeton ici. **Ne partagez jamais ce jeton** (mail, capture d’écran publique, etc.).
@@ -49,7 +49,7 @@ En bas de page, le **journal des exécutions** résume chaque passage : combie
 
 ## Bluesky — réglages simples
 
-1. Menu **Réglages → WPIS Bluesky Bot**.
+1. Menu latéral **WPIS Bots → Bluesky**.
 2. **Activer** quand tout est prêt.
 3. **URL du service** : en général `https://bsky.social` sauf indication contraire (hébergement personnalisé).
 4. **Identifiant** : votre **pseudo Bluesky** (format `exemple.bsky.social`) ou l’e-mail du compte.
