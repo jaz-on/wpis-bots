@@ -1,0 +1,32 @@
+{
+	"name": "jaz-on/wpis-bot-mastodon",
+	"description": "Mastodon bot plugin for WordPress Is…",
+	"type": "wordpress-plugin",
+	"version": "0.1.0",
+	"license": "GPL-2.0-or-later",
+	"require": {
+		"php": "^8.2"
+	},
+	"require-dev": {
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"phpcompatibility/phpcompatibility-wp": "^2.1",
+		"wp-coding-standards/wpcs": "^3.1"
+	},
+	"autoload": {
+		"psr-4": {
+			"WPIS\\BotMastodon\\": "src/"
+		}
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		},
+		"platform": {
+			"php": "8.2"
+		}
+	},
+	"scripts": {
+		"lint": "phpcs",
+		"lint:fix": "phpcbf"
+	}
+}
