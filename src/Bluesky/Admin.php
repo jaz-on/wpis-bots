@@ -23,6 +23,11 @@ final class Admin {
 	private const POLL_NOTICE_TRANSIENT = 'wpis_bot_bluesky_poll_notice';
 
 	/**
+	 * Transient key suffix for test-connection feedback (per user).
+	 */
+	private const TEST_NOTICE_TRANSIENT = 'wpis_bot_bluesky_test_notice';
+
+	/**
 	 * @return void
 	 */
 	public static function register(): void {
@@ -30,6 +35,7 @@ final class Admin {
 		add_action( 'admin_notices', array( self::class, 'notice_action_scheduler' ) );
 		add_action( 'admin_notices', array( self::class, 'render_admin_notices' ) );
 		add_action( 'admin_post_wpis_bot_bluesky_poll_now', array( self::class, 'handle_poll_now' ) );
+		add_action( 'admin_post_wpis_bot_bluesky_test_connection', array( self::class, 'handle_test_connection' ) );
 	}
 
 	/**
@@ -112,6 +118,67 @@ final class Admin {
 	}
 
 	/**
+	 * Verifies session and one search request (no ingestion).
+	 *
+	 * @return void
+	 */
+	public static function handle_test_connection(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Sorry, you are not allowed to do this.', 'wpis-bot-bluesky' ), '', array( 'response' => 403 ) );
+		}
+		check_admin_referer( 'wpis_bot_bluesky_test_connection' );
+
+		$redirect   = admin_url( 'admin.php?page=' . self::SLUG );
+		$notice_key = self::TEST_NOTICE_TRANSIENT . '_' . get_current_user_id();
+
+		$s       = Settings::get();
+		$service = BlueskyClient::normalize_service_url( (string) $s['service_url'] );
+		$jwt     = SessionManager::get_access_jwt( $s );
+		if ( is_wp_error( $jwt ) ) {
+			set_transient(
+				$notice_key,
+				array(
+					'ok'      => false,
+					'message' => $jwt->get_error_message(),
+				),
+				60
+			);
+			wp_safe_redirect( $redirect );
+			exit;
+		}
+
+		$query = trim( (string) $s['search_query'] );
+		if ( '' === $query ) {
+			$query = 'WordPress';
+		}
+
+		$search = BlueskyClient::search_posts( $service, $jwt, $query, '', 1 );
+		if ( is_wp_error( $search ) ) {
+			set_transient(
+				$notice_key,
+				array(
+					'ok'      => false,
+					'message' => $search->get_error_message(),
+				),
+				60
+			);
+			wp_safe_redirect( $redirect );
+			exit;
+		}
+
+		set_transient(
+			$notice_key,
+			array(
+				'ok'    => true,
+				'count' => count( $search['posts'] ),
+			),
+			60
+		);
+		wp_safe_redirect( $redirect );
+		exit;
+	}
+
+	/**
 	 * Runs one poll immediately (admin test; uses saved credentials even if bot is off).
 	 *
 	 * @return void
@@ -124,8 +191,11 @@ final class Admin {
 
 		$redirect   = admin_url( 'admin.php?page=' . self::SLUG );
 		$notice_key = self::POLL_NOTICE_TRANSIENT . '_' . get_current_user_id();
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked via check_admin_referer above.
+		$dry_raw = isset( $_POST['wpis_bot_bluesky_dry_run'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['wpis_bot_bluesky_dry_run'] ) ) : '';
+		$dry_run = ( '1' === $dry_raw );
 
-		if ( ! function_exists( 'wpis_find_potential_duplicates' ) ) {
+		if ( ! $dry_run && ! CoreDependency::is_core_ready() ) {
 			set_transient(
 				$notice_key,
 				array(
@@ -138,7 +208,7 @@ final class Admin {
 			exit;
 		}
 
-		$stats = Poller::run( true );
+		$stats = Poller::run( true, $dry_run );
 		if ( null === $stats ) {
 			set_transient(
 				$notice_key,
@@ -196,13 +266,25 @@ final class Admin {
 			return;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- flag appended by options.php after a successful save.
-		if ( ! empty( $_GET['settings-updated'] ) ) {
-			echo '<div class="notice notice-success is-dismissible"><p>';
-			echo esc_html__( 'Settings saved.', 'wpis-bot-bluesky' );
-			echo ' ';
-			echo esc_html__( 'Use "Run poll now" below to confirm your Bluesky session works.', 'wpis-bot-bluesky' );
-			echo '</p></div>';
+		$test_key = self::TEST_NOTICE_TRANSIENT . '_' . get_current_user_id();
+		$test     = get_transient( $test_key );
+		if ( false !== $test && is_array( $test ) ) {
+			delete_transient( $test_key );
+			if ( ! empty( $test['ok'] ) ) {
+				echo '<div class="notice notice-success is-dismissible"><p>';
+				printf(
+					/* translators: %d: number of posts returned (0 or 1) */
+					esc_html__( 'Connection test succeeded: search returned %d post(s). Nothing was saved to WordPress.', 'wpis-bot-bluesky' ),
+					(int) ( $test['count'] ?? 0 )
+				);
+				echo '</p></div>';
+			} else {
+				echo '<div class="notice notice-error is-dismissible"><p>';
+				echo esc_html__( 'Connection test failed:', 'wpis-bot-bluesky' );
+				echo ' ';
+				echo esc_html( isset( $test['message'] ) ? (string) $test['message'] : '' );
+				echo '</p></div>';
+			}
 		}
 
 		$notice_key = self::POLL_NOTICE_TRANSIENT . '_' . get_current_user_id();
@@ -213,15 +295,24 @@ final class Admin {
 			if ( 'ok' === $type && isset( $data['stats'] ) && is_array( $data['stats'] ) ) {
 				$st = $data['stats'];
 				echo '<div class="notice notice-success is-dismissible"><p>';
-				echo esc_html__( 'Poll finished successfully.', 'wpis-bot-bluesky' );
-				echo ' ';
-				printf(
-					/* translators: 1: candidates count, 2: created, 3: bumped */
-					esc_html__( 'Candidates: %1$d, created: %2$d and bumped: %3$d.', 'wpis-bot-bluesky' ),
-					(int) ( $st['candidates'] ?? 0 ),
-					(int) ( $st['created'] ?? 0 ),
-					(int) ( $st['bumped'] ?? 0 )
-				);
+				if ( ! empty( $st['dry_run'] ) ) {
+					printf(
+						/* translators: 1: candidates, 2: would_process */
+						esc_html__( 'Dry run finished. Candidates: %1$d. Would ingest (keyword match, not yet seen): %2$d. No drafts, seen IDs or search cursor were updated.', 'wpis-bot-bluesky' ),
+						(int) ( $st['candidates'] ?? 0 ),
+						(int) ( $st['would_process'] ?? 0 )
+					);
+				} else {
+					echo esc_html__( 'Poll finished successfully.', 'wpis-bot-bluesky' );
+					echo ' ';
+					printf(
+						/* translators: 1: candidates count, 2: created, 3: bumped */
+						esc_html__( 'Candidates: %1$d, created: %2$d and bumped: %3$d.', 'wpis-bot-bluesky' ),
+						(int) ( $st['candidates'] ?? 0 ),
+						(int) ( $st['created'] ?? 0 ),
+						(int) ( $st['bumped'] ?? 0 )
+					);
+				}
 				echo '</p></div>';
 				return;
 			}
@@ -237,13 +328,44 @@ final class Admin {
 				$reason = isset( $data['reason'] ) ? (string) $data['reason'] : '';
 				echo '<div class="notice notice-warning is-dismissible"><p>';
 				if ( 'core' === $reason ) {
-					echo esc_html__( 'Poll did not run: WPIS Core is not available.', 'wpis-bot-bluesky' );
+					echo esc_html__( 'Full poll did not run: WPIS Core is incomplete or inactive. Use Test connection or Dry run to check Bluesky only.', 'wpis-bot-bluesky' );
 				} else {
 					echo esc_html__( 'Poll did not run (nothing to do).', 'wpis-bot-bluesky' );
 				}
 				echo '</p></div>';
 			}
 		}
+	}
+
+	/**
+	 * Test API, manual poll and dry run (uses saved options).
+	 *
+	 * @return void
+	 */
+	private static function render_quick_actions_card(): void {
+		echo '<div class="card" style="max-width: 56rem; padding: 1rem 1.25rem; margin: 1em 0;">';
+		echo '<h2 style="margin-top: 0;">' . esc_html__( 'Try the API and run a poll', 'wpis-bot-bluesky' ) . '</h2>';
+		echo '<p class="description">' . esc_html__( 'These actions use settings already saved in the database. Save the form below first if you changed any field.', 'wpis-bot-bluesky' ) . '</p>';
+
+		echo '<h3>' . esc_html__( 'Test connection', 'wpis-bot-bluesky' ) . '</h3>';
+		echo '<p>' . esc_html__( 'Opens a session and runs one search. Does not create drafts or change bot state.', 'wpis-bot-bluesky' ) . '</p>';
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="margin-bottom: 1.25em;">';
+		wp_nonce_field( 'wpis_bot_bluesky_test_connection' );
+		echo '<input type="hidden" name="action" value="wpis_bot_bluesky_test_connection" />';
+		submit_button( __( 'Test connection', 'wpis-bot-bluesky' ), 'secondary', 'submit', false );
+		echo '</form>';
+
+		echo '<h3>' . esc_html__( 'Manual poll', 'wpis-bot-bluesky' ) . '</h3>';
+		echo '<p>' . esc_html__( 'Runs a full fetch using saved settings, even if the bot is disabled. Optional dry run counts matches without creating drafts or updating seen IDs.', 'wpis-bot-bluesky' ) . '</p>';
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+		wp_nonce_field( 'wpis_bot_bluesky_poll_now' );
+		echo '<input type="hidden" name="action" value="wpis_bot_bluesky_poll_now" />';
+		echo '<p><label><input type="checkbox" name="wpis_bot_bluesky_dry_run" value="1" /> ';
+		echo esc_html__( 'Dry run (no drafts, do not update seen IDs or search cursor)', 'wpis-bot-bluesky' );
+		echo '</label></p>';
+		submit_button( __( 'Run poll now', 'wpis-bot-bluesky' ), 'primary', 'submit', false );
+		echo '</form>';
+		echo '</div>';
 	}
 
 	/**
@@ -261,12 +383,21 @@ final class Admin {
 		$last = array() !== $log && isset( $log[0] ) && is_array( $log[0] ) ? $log[0] : null;
 
 		echo '<div class="wrap"><h1>' . esc_html__( 'WPIS Bluesky Bot', 'wpis-bot-bluesky' ) . '</h1>';
-		if ( CoreDependency::block_if_core_missing() ) {
-			echo '</div>';
-			return;
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only flag after options.php redirect.
+		if ( ! empty( $_GET['settings-updated'] ) ) {
+			echo '<div class="notice notice-success is-dismissible"><p>';
+			echo esc_html__( 'Settings saved.', 'wpis-bot-bluesky' );
+			echo ' ';
+			echo esc_html__( 'Use Test connection or a manual poll below to verify your Bluesky session.', 'wpis-bot-bluesky' );
+			echo '</p></div>';
 		}
 
+		CoreDependency::block_if_core_missing();
+
 		DocsLinks::render_bluesky_intro();
+		self::render_quick_actions_card();
+
 		echo '<form method="post" action="options.php">';
 		settings_fields( 'wpis_bot_bluesky' );
 		$s = Settings::get();
@@ -311,14 +442,6 @@ final class Admin {
 		</table>
 		<?php
 		submit_button();
-		echo '</form>';
-
-		echo '<h2>' . esc_html__( 'Manual poll', 'wpis-bot-bluesky' ) . '</h2>';
-		echo '<p>' . esc_html__( 'Runs one fetch using the saved settings, even if the bot is disabled. Use this to verify credentials before enabling the schedule.', 'wpis-bot-bluesky' ) . '</p>';
-		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
-		wp_nonce_field( 'wpis_bot_bluesky_poll_now' );
-		echo '<input type="hidden" name="action" value="wpis_bot_bluesky_poll_now" />';
-		submit_button( __( 'Run poll now', 'wpis-bot-bluesky' ), 'secondary', 'submit', false );
 		echo '</form>';
 
 		if ( $last ) {

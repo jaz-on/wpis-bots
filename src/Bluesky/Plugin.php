@@ -7,6 +7,8 @@
 
 namespace WPIS\BotBluesky;
 
+use WPIS\Bots\CoreDependency;
+
 /**
  * Registers hooks once WPIS Core is available.
  */
@@ -24,7 +26,7 @@ final class Plugin {
 	 */
 	public function bootstrap(): void {
 		Admin::register();
-		if ( ! function_exists( 'wpis_submit_quote_candidate' ) ) {
+		if ( ! CoreDependency::is_core_ready() ) {
 			return;
 		}
 		Scheduler::register_hooks();

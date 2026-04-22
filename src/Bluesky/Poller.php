@@ -7,6 +7,7 @@
 
 namespace WPIS\BotBluesky;
 
+use WPIS\Bots\CoreDependency;
 use WPIS\Bots\ProcessedRemoteIds;
 use WPIS\Bots\QuoteIngest;
 use WPIS\Bots\RunLogger;
@@ -19,10 +20,11 @@ final class Poller {
 
 	/**
 	 * @param bool $force When true, run even if the bot is disabled (manual test from admin).
+	 * @param bool $dry_run When true, fetch and count only; no drafts, seen IDs or cursor updates.
 	 * @return array<string, mixed>|null Summary stats for admin feedback, or null if the job did not run.
 	 */
-	public static function run( bool $force = false ): ?array {
-		if ( ! function_exists( 'wpis_find_potential_duplicates' ) ) {
+	public static function run( bool $force = false, bool $dry_run = false ): ?array {
+		if ( ! $dry_run && ! CoreDependency::is_core_ready() ) {
 			return null;
 		}
 
@@ -47,11 +49,17 @@ final class Poller {
 			'skipped_too_long' => 0,
 			'errors'           => array(),
 		);
+		if ( $dry_run ) {
+			$stats['dry_run']       = true;
+			$stats['would_process'] = 0;
+		}
 
 		$jwt = SessionManager::get_access_jwt( $settings );
 		if ( is_wp_error( $jwt ) ) {
 			$stats['errors'][] = $jwt->get_error_message();
-			$logger->push( array_merge( $stats, array( 'source' => 'bluesky' ) ) );
+			if ( ! $dry_run ) {
+				$logger->push( array_merge( $stats, array( 'source' => 'bluesky' ) ) );
+			}
 			return array_merge( $stats, array( 'source' => 'bluesky' ) );
 		}
 
@@ -78,7 +86,9 @@ final class Poller {
 
 		if ( is_wp_error( $result ) ) {
 			$stats['errors'][] = $result->get_error_message();
-			$logger->push( array_merge( $stats, array( 'source' => 'bluesky' ) ) );
+			if ( ! $dry_run ) {
+				$logger->push( array_merge( $stats, array( 'source' => 'bluesky' ) ) );
+			}
 			return array_merge( $stats, array( 'source' => 'bluesky' ) );
 		}
 
@@ -96,7 +106,14 @@ final class Poller {
 			$text = (string) $row['text'];
 			if ( ! TextHelper::matches_any_pattern( $text, $patterns ) ) {
 				++$stats['skipped_keyword'];
-				$seen->remember( $rid );
+				if ( ! $dry_run ) {
+					$seen->remember( $rid );
+				}
+				continue;
+			}
+
+			if ( $dry_run ) {
+				++$stats['would_process'];
 				continue;
 			}
 
@@ -139,9 +156,10 @@ final class Poller {
 			}
 		}
 
-		Settings::set_state( array( 'cursor' => (string) $result['cursor'] ) );
-
-		$logger->push( array_merge( $stats, array( 'source' => 'bluesky' ) ) );
+		if ( ! $dry_run ) {
+			Settings::set_state( array( 'cursor' => (string) $result['cursor'] ) );
+			$logger->push( array_merge( $stats, array( 'source' => 'bluesky' ) ) );
+		}
 		return array_merge( $stats, array( 'source' => 'bluesky' ) );
 	}
 }

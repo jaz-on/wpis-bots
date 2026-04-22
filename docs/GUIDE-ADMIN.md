@@ -45,7 +45,12 @@ Ces comptes servent de **référence** (profil, transparence). Le site WordPress
 7. **Mots-clés** : une ligne = une expression que le message doit contenir (ex. `WordPress is`). Si la liste est vide, tout message récupéré peut être proposé (peu recommandé).
 8. **Langue Polylang** : si votre site est multilingue avec Polylang, indiquez le **slug** de la langue (ex. `en` ou `fr`) pour classer les nouvelles citations.
 
-En bas de page, le **journal des exécutions** résume chaque passage : combien de messages vus, combien créés, combien fusionnés avec une citation existante, erreurs éventuelles.
+**Avant ou après avoir enregistré**, la zone **« Essayer l’API et lancer un passage »** (en haut de l’écran, sous l’intro) propose :
+
+- **Test de connexion** : une requête minimale vers l’instance (un message du fil hashtag) **sans** créer de brouillon ni modifier l’état du bot.
+- **Passage manuel** : comme la tâche planifiée, avec option **« Simulation à blanc »** (dry run) : compte les messages qui seraient ingérés **sans** créer de brouillon ni mettre à jour la liste des messages déjà vus ni la position dans le fil.
+
+Le **journal détaillé** de tous les passages (planifiés ou manuels **hors** simulation) se trouve sous **WPIS Bots → Journaux d’exécution**. Chaque écran Mastodon ou Bluesky rappelle aussi la date du **dernier passage enregistré** dans le journal.
 
 ## Bluesky — réglages simples
 
@@ -55,7 +60,7 @@ En bas de page, le **journal des exécutions** résume chaque passage : combie
 4. **Identifiant** : votre **pseudo Bluesky** (format `exemple.bsky.social`) ou l’e-mail du compte.
 5. **Mot de passe d’application** : à créer dans l’application Bluesky (paramètres du compte → mots de passe d’application). **Ne utilisez pas** votre mot de passe principal. Ce mot de passe sert uniquement à ouvrir une session API ; il reste stocké dans la base WordPress comme les autres options (protégez l’admin du site).
 6. **Requête de recherche** : texte envoyé à la recherche Bluesky (ex. `WordPress is`). Les **mots-clés** en dessous filtrent encore le texte des messages trouvés.
-7. Même logique que Mastodon pour **intervalle**, **seuil de doublons**, **Polylang** et le **journal**.
+7. Même logique que Mastodon pour **intervalle**, **seuil de doublons**, **Polylang**, **test de connexion**, **passage manuel**, **simulation à blanc** et **journal** (voir ci‑dessus et **WPIS Bots → Journaux d’exécution**).
 
 ## Bonnes habitudes
 

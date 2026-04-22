@@ -7,6 +7,7 @@
 
 namespace WPIS\BotMastodon;
 
+use WPIS\Bots\CoreDependency;
 use WPIS\Bots\ProcessedRemoteIds;
 use WPIS\Bots\QuoteIngest;
 use WPIS\Bots\RunLogger;
@@ -19,10 +20,11 @@ final class Poller {
 
 	/**
 	 * @param bool $force When true, run even if the bot is disabled (manual test from admin).
+	 * @param bool $dry_run When true, fetch and count only; no drafts, seen IDs or since_id updates.
 	 * @return array<string, mixed>|null Summary stats for admin feedback, or null if the job did not run.
 	 */
-	public static function run( bool $force = false ): ?array {
-		if ( ! function_exists( 'wpis_find_potential_duplicates' ) ) {
+	public static function run( bool $force = false, bool $dry_run = false ): ?array {
+		if ( ! $dry_run && ! CoreDependency::is_core_ready() ) {
 			return null;
 		}
 
@@ -47,6 +49,10 @@ final class Poller {
 			'skipped_too_long' => 0,
 			'errors'           => array(),
 		);
+		if ( $dry_run ) {
+			$stats['dry_run']       = true;
+			$stats['would_process'] = 0;
+		}
 
 		$items = MastodonClient::fetch_tag_timeline(
 			$instance,
@@ -58,7 +64,9 @@ final class Poller {
 
 		if ( is_wp_error( $items ) ) {
 			$stats['errors'][] = $items->get_error_message();
-			$logger->push( array_merge( $stats, array( 'source' => 'mastodon' ) ) );
+			if ( ! $dry_run ) {
+				$logger->push( array_merge( $stats, array( 'source' => 'mastodon' ) ) );
+			}
 			return array_merge( $stats, array( 'source' => 'mastodon' ) );
 		}
 
@@ -87,7 +95,17 @@ final class Poller {
 			$text = (string) $row['text'];
 			if ( ! TextHelper::matches_any_pattern( $text, $patterns ) ) {
 				++$stats['skipped_keyword'];
-				$seen->remember( $rid );
+				if ( ! $dry_run ) {
+					$seen->remember( $rid );
+				}
+				if ( '' === $max_id || strcmp( $rid, $max_id ) > 0 ) {
+					$max_id = $rid;
+				}
+				continue;
+			}
+
+			if ( $dry_run ) {
+				++$stats['would_process'];
 				if ( '' === $max_id || strcmp( $rid, $max_id ) > 0 ) {
 					$max_id = $rid;
 				}
@@ -132,11 +150,13 @@ final class Poller {
 			}
 		}
 
-		if ( '' !== $max_id && ( '' === $since || strcmp( $max_id, $since ) > 0 ) ) {
+		if ( ! $dry_run && '' !== $max_id && ( '' === $since || strcmp( $max_id, $since ) > 0 ) ) {
 			Settings::set_state( array( 'since_id' => $max_id ) );
 		}
 
-		$logger->push( array_merge( $stats, array( 'source' => 'mastodon' ) ) );
+		if ( ! $dry_run ) {
+			$logger->push( array_merge( $stats, array( 'source' => 'mastodon' ) ) );
+		}
 		return array_merge( $stats, array( 'source' => 'mastodon' ) );
 	}
 }
