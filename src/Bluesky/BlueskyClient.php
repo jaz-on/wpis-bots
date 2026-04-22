@@ -246,6 +246,27 @@ final class BlueskyClient {
 	}
 
 	/**
+	 * Normalizes a pasted account value for com.atproto.server.createSession
+	 * (handle, email or a bsky.app profile URL).
+	 *
+	 * @param string $s Raw.
+	 * @return string
+	 */
+	public static function normalize_identifier( string $s ): string {
+		$s = trim( $s );
+		if ( '' === $s ) {
+			return '';
+		}
+		if ( preg_match( '#^https?://(www\.)?bsky\.app/profile/([^/?#]+)#i', $s, $m ) ) {
+			return rawurldecode( $m[2] );
+		}
+		if ( str_starts_with( $s, '@' ) && 1 === substr_count( $s, '@' ) ) {
+			return trim( substr( $s, 1 ) );
+		}
+		return $s;
+	}
+
+	/**
 	 * @param string $url Raw service URL.
 	 * @return string Normalized origin.
 	 */

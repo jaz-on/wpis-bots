@@ -93,8 +93,12 @@ final class Admin {
 			isset( $input['service_url'] ) ? (string) $input['service_url'] : ''
 		);
 
-		$out['identifier'] = isset( $input['identifier'] )
-			? sanitize_text_field( (string) $input['identifier'] ) : '';
+		$out['identifier'] = '';
+		if ( isset( $input['identifier'] ) ) {
+			$out['identifier'] = BlueskyClient::normalize_identifier(
+				sanitize_text_field( (string) $input['identifier'] )
+			);
+		}
 
 		$out['app_password'] = isset( $input['app_password'] )
 			? sanitize_text_field( (string) $input['app_password'] ) : '';
@@ -412,8 +416,18 @@ final class Admin {
 				<td><input name="<?php echo esc_attr( Settings::OPTION ); ?>[service_url]" id="wpis_b_service" type="url" class="regular-text" value="<?php echo esc_attr( (string) $s['service_url'] ); ?>" /></td>
 			</tr>
 			<tr>
-				<th scope="row"><label for="wpis_b_id"><?php esc_html_e( 'Bluesky handle or email', 'wpis-bot-bluesky' ); ?></label></th>
-				<td><input name="<?php echo esc_attr( Settings::OPTION ); ?>[identifier]" id="wpis_b_id" type="text" class="regular-text" autocomplete="username" value="<?php echo esc_attr( (string) $s['identifier'] ); ?>" /></td>
+				<th scope="row"><label for="wpis_b_id"><?php esc_html_e( 'Bluesky account', 'wpis-bot-bluesky' ); ?></label></th>
+				<td>
+					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[identifier]" id="wpis_b_id" type="text" class="regular-text" autocomplete="username" value="<?php echo esc_attr( (string) $s['identifier'] ); ?>" />
+					<p class="description">
+						<?php
+						esc_html_e(
+							'Use your handle, your sign-in email or a DID. A bsky.app profile link or a line that starts with an at-sign before the handle is normalized on save. A display name or a post URL on its own is not valid here.',
+							'wpis-bot-bluesky'
+						);
+						?>
+					</p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="wpis_b_pw"><?php esc_html_e( 'App password', 'wpis-bot-bluesky' ); ?></label></th>

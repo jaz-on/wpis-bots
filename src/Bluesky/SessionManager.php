@@ -26,7 +26,7 @@ final class SessionManager {
 			return (string) $cached['accessJwt'];
 		}
 
-		$identifier   = trim( (string) ( $settings['identifier'] ?? '' ) );
+		$identifier = BlueskyClient::normalize_identifier( trim( (string) ( $settings['identifier'] ?? '' ) ) );
 		$app_password = (string) ( $settings['app_password'] ?? '' );
 		if ( '' === $identifier || '' === $app_password ) {
 			return new \WP_Error( 'wpis_bluesky_creds', 'Bluesky identifier and app password are required.' );
