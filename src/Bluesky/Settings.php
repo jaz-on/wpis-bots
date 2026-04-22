@@ -29,18 +29,18 @@ final class Settings {
 	 */
 	public static function defaults(): array {
 		return array(
-			'enabled'                      => 0,
-			'service_url'                 => 'https://bsky.social',
-			'identifier'                 => '',
-			'app_password'               => '',
+			'enabled'                   => 0,
+			'service_url'               => 'https://bsky.social',
+			'identifier'                => '',
+			'app_password'              => '',
 			'search_query'              => 'WordPress is',
 			'poll_interval_minutes'     => 15,
 			'backfill_enabled'          => 0,
 			'backfill_interval_minutes' => 360,
-			'backfill_max_pages'         => 5,
+			'backfill_max_pages'        => 5,
 			'dedup_threshold'           => 70,
-			'keyword_patterns'         => "WordPress is\nWordpress is",
-			'polylang_slug'            => '',
+			'keyword_patterns'          => "WordPress is\nWordpress is",
+			'polylang_slug'             => '',
 		);
 	}
 

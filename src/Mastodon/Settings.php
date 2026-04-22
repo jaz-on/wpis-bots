@@ -145,8 +145,8 @@ final class Settings {
 		}
 
 		return array(
-			'since_by_instance'     => $since,
-			'backfill_by_instance'  => $backfill,
+			'since_by_instance'    => $since,
+			'backfill_by_instance' => $backfill,
 		);
 	}
 

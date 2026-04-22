@@ -56,14 +56,14 @@ final class Admin {
 			return;
 		}
 		echo '<div class="notice notice-warning"><p>';
-		printf(
-			wp_kses(
+		echo wp_kses(
+			sprintf(
 				/* translators: 1: Action Scheduler plugin link, 2: WP-Cron handbook link */
 				__( 'Action Scheduler is not available. Install and activate the %1$s plugin (or rely on %2$s, which is less reliable on low traffic sites).', 'wpis-bot-mastodon' ),
-				DocsLinks::external_link_allowed_tags()
+				DocsLinks::external_anchor( 'https://wordpress.org/plugins/action-scheduler/', __( 'Action Scheduler', 'wpis-bot-mastodon' ) ),
+				DocsLinks::external_anchor( 'https://developer.wordpress.org/plugins/cron/', __( 'WP-Cron', 'wpis-bot-mastodon' ) )
 			),
-			DocsLinks::external_anchor( 'https://wordpress.org/plugins/action-scheduler/', __( 'Action Scheduler', 'wpis-bot-mastodon' ) ),
-			DocsLinks::external_anchor( 'https://developer.wordpress.org/plugins/cron/', __( 'WP-Cron', 'wpis-bot-mastodon' ) )
+			DocsLinks::external_link_allowed_tags()
 		);
 		echo '</p></div>';
 	}
@@ -296,19 +296,23 @@ final class Admin {
 			delete_transient( $test_key );
 			if ( ! empty( $test['ok'] ) ) {
 				echo '<div class="notice notice-success is-dismissible"><p>';
-				printf(
-					/* translators: 1: number of posts, 2: instance that was probed */
-					esc_html__( 'Connection test succeeded: timeline on %2$s returned %1$d post(s). Nothing was saved to WordPress.', 'wpis-bot-mastodon' ),
-					(int) ( $test['count'] ?? 0 ),
-					esc_html( (string) ( $test['instance'] ?? '' ) )
+				echo esc_html(
+					sprintf(
+						/* translators: 1: number of posts, 2: instance that was probed */
+						__( 'Connection test succeeded: timeline on %2$s returned %1$d post(s). Nothing was saved to WordPress.', 'wpis-bot-mastodon' ),
+						(int) ( $test['count'] ?? 0 ),
+						(string) ( $test['instance'] ?? '' )
+					)
 				);
 				$more = (int) ( $test['more_instances'] ?? 0 );
 				if ( $more > 0 ) {
 					echo ' ';
-					printf(
-						/* translators: %d: number of additional instance URLs not probed */
-						esc_html__( 'The test only uses the first URL in the list (%d other line(s) were not requested in this test).', 'wpis-bot-mastodon' ),
-						$more
+					echo esc_html(
+						sprintf(
+							/* translators: %d: number of additional instance URLs not probed */
+							__( 'The test only uses the first URL in the list (%d other line(s) were not requested in this test).', 'wpis-bot-mastodon' ),
+							$more
+						)
 					);
 				}
 				echo '</p></div>';
@@ -330,21 +334,25 @@ final class Admin {
 				$st = $data['stats'];
 				echo '<div class="notice notice-success is-dismissible"><p>';
 				if ( ! empty( $st['dry_run'] ) ) {
-					printf(
-						/* translators: 1: candidates, 2: would_process */
-						esc_html__( 'Dry run finished. Candidates: %1$d. Would ingest (keyword match, not yet seen): %2$d. No drafts, seen IDs or since_id were updated.', 'wpis-bot-mastodon' ),
-						(int) ( $st['candidates'] ?? 0 ),
-						(int) ( $st['would_process'] ?? 0 )
+					echo esc_html(
+						sprintf(
+							/* translators: 1: candidates, 2: would_process */
+							__( 'Dry run finished. Candidates: %1$d. Would ingest (keyword match, not yet seen): %2$d. No drafts, seen IDs or since_id were updated.', 'wpis-bot-mastodon' ),
+							(int) ( $st['candidates'] ?? 0 ),
+							(int) ( $st['would_process'] ?? 0 )
+						)
 					);
 				} else {
 					echo esc_html__( 'Poll finished successfully.', 'wpis-bot-mastodon' );
 					echo ' ';
-					printf(
-						/* translators: 1: candidates count, 2: created, 3: bumped */
-						esc_html__( 'Candidates: %1$d, created: %2$d and bumped: %3$d.', 'wpis-bot-mastodon' ),
-						(int) ( $st['candidates'] ?? 0 ),
-						(int) ( $st['created'] ?? 0 ),
-						(int) ( $st['bumped'] ?? 0 )
+					echo esc_html(
+						sprintf(
+							/* translators: 1: candidates count, 2: created, 3: bumped */
+							__( 'Candidates: %1$d, created: %2$d and bumped: %3$d.', 'wpis-bot-mastodon' ),
+							(int) ( $st['candidates'] ?? 0 ),
+							(int) ( $st['created'] ?? 0 ),
+							(int) ( $st['bumped'] ?? 0 )
+						)
 					);
 				}
 				echo '</p></div>';
@@ -381,13 +389,13 @@ final class Admin {
 		echo '<h2 style="margin-top: 0;">' . esc_html__( 'Try the API and run a poll', 'wpis-bot-mastodon' ) . '</h2>';
 		echo '<p class="description">' . esc_html__( 'These actions use settings already saved in the database. Save the form below first if you changed any field.', 'wpis-bot-mastodon' ) . '</p>';
 		echo '<p class="description">';
-		printf(
-			wp_kses(
+		echo wp_kses(
+			sprintf(
 				/* translators: %s: link to Mastodon hashtag timeline API reference */
 				__( 'Hashtag timelines in the API: %s.', 'wpis-bot-mastodon' ),
-				DocsLinks::external_link_allowed_tags()
+				DocsLinks::external_anchor( 'https://docs.joinmastodon.org/methods/timelines/#tag', __( 'Mastodon timeline methods', 'wpis-bot-mastodon' ) )
 			),
-			DocsLinks::external_anchor( 'https://docs.joinmastodon.org/methods/timelines/#tag', __( 'Mastodon timeline methods', 'wpis-bot-mastodon' ) )
+			DocsLinks::external_link_allowed_tags()
 		);
 		echo '</p>';
 
@@ -453,14 +461,14 @@ final class Admin {
 					<label><input type="checkbox" name="<?php echo esc_attr( Settings::OPTION ); ?>[enabled]" value="1" <?php checked( $s['enabled'], 1 ); ?> /> <?php esc_html_e( 'Poll Mastodon on a schedule', 'wpis-bot-mastodon' ); ?></label>
 					<p class="description">
 						<?php
-						printf(
-							wp_kses(
+						echo wp_kses(
+							sprintf(
 								/* translators: 1: link to shipped admin guide, 2: link to Mastodon for beginners */
 								__( 'When on, the site runs a recurring job to read the public hashtag stream and may create or bump quote drafts. When off, the schedule is idle, but Test connection and manual poll (below) still work for debugging. Options and limits: %1$s. New to Mastodon: %2$s.', 'wpis-bot-mastodon' ),
-								DocsLinks::external_link_allowed_tags()
+								DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'guide-admin.md' ), __( 'WPIS Bots admin guide (GitHub)', 'wpis-bot-mastodon' ) ),
+								DocsLinks::external_anchor( 'https://joinmastodon.org/', __( 'joinmastodon.org', 'wpis-bot-mastodon' ) )
 							),
-							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'guide-admin.md' ), __( 'WPIS Bots admin guide (GitHub)', 'wpis-bot-mastodon' ) ),
-							DocsLinks::external_anchor( 'https://joinmastodon.org/', __( 'joinmastodon.org', 'wpis-bot-mastodon' ) )
+							DocsLinks::external_link_allowed_tags()
 						);
 						?>
 					</p>
@@ -469,10 +477,12 @@ final class Admin {
 			<tr>
 				<th scope="row"><label for="wpis_m_instance_urls"><?php esc_html_e( 'Instance URLs (one per line)', 'wpis-bot-mastodon' ); ?></label></th>
 				<td>
-					<textarea name="<?php echo esc_attr( Settings::OPTION ); ?>[instance_urls]" id="wpis_m_instance_urls" class="large-text" rows="5" spellcheck="false"><?php
+					<textarea name="<?php echo esc_attr( Settings::OPTION ); ?>[instance_urls]" id="wpis_m_instance_urls" class="large-text" rows="5" spellcheck="false">
+					<?php
 					$u = isset( $s['instance_urls'] ) && is_array( $s['instance_urls'] ) ? $s['instance_urls'] : array( (string) $s['instance_url'] );
 					echo esc_textarea( implode( "\n", $u ) );
-					?></textarea>
+					?>
+					</textarea>
 					<p class="description">
 						<?php
 						esc_html_e(
@@ -516,38 +526,38 @@ final class Admin {
 					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[access_token]" id="wpis_m_token" type="password" class="regular-text" autocomplete="off" value="<?php echo esc_attr( (string) $s['access_token'] ); ?>" />
 					<p class="description">
 						<?php
-						printf(
-							wp_kses(
+						echo wp_kses(
+							sprintf(
 								/* translators: 1: link to developer settings on mastodon.social, 2: link to Mastodon token documentation */
 								__( 'Leave this blank on most sites. The bot only needs a token if the public hashtag stream is not visible to anonymous users. If Test connection works without a token, keep the field empty. If you do need a token, create an application in Preferences → Development on your instance (same screen as %1$s on mastodon.social), then set the next items in this list before you copy the access token in here. Read %2$s for scope and OAuth details.', 'wpis-bot-mastodon' ),
-								DocsLinks::external_link_allowed_tags()
+								DocsLinks::external_anchor( 'https://mastodon.social/settings/development', __( 'developer settings', 'wpis-bot-mastodon' ) ),
+								DocsLinks::external_anchor( 'https://docs.joinmastodon.org/client/authorized/', __( 'Mastodon client tokens', 'wpis-bot-mastodon' ) )
 							),
-							DocsLinks::external_anchor( 'https://mastodon.social/settings/development', __( 'developer settings', 'wpis-bot-mastodon' ) ),
-							DocsLinks::external_anchor( 'https://docs.joinmastodon.org/client/authorized/', __( 'Mastodon client tokens', 'wpis-bot-mastodon' ) )
+							DocsLinks::external_link_allowed_tags()
 						);
 						?>
 					</p>
 					<p class="description">
 						<?php
-						printf(
-							wp_kses(
+						echo wp_kses(
+							sprintf(
 								/* translators: %s: link to Mastodon OAuth documentation */
 								__( 'Redirect URI: urn:ietf:wg:oauth:2.0:oob is correct when you only copy the access token into WordPress (no browser callback). Details: %s.', 'wpis-bot-mastodon' ),
-								DocsLinks::external_link_allowed_tags()
+								DocsLinks::external_anchor( 'https://docs.joinmastodon.org/client/authorized/', __( 'Mastodon OAuth and tokens', 'wpis-bot-mastodon' ) )
 							),
-							DocsLinks::external_anchor( 'https://docs.joinmastodon.org/client/authorized/', __( 'Mastodon OAuth and tokens', 'wpis-bot-mastodon' ) )
+							DocsLinks::external_link_allowed_tags()
 						);
 						?>
 					</p>
 					<p class="description">
 						<?php
-						printf(
-							wp_kses(
+						echo wp_kses(
+							sprintf(
 								/* translators: %s: link to Mastodon OAuth scopes */
 								__( 'Scopes: enable read. If the form lists fine-grained scopes, also enable read:statuses (read public posts). Profile alone is not enough. Reference: %s.', 'wpis-bot-mastodon' ),
-								DocsLinks::external_link_allowed_tags()
+								DocsLinks::external_anchor( 'https://docs.joinmastodon.org/api/oauth-scopes/', __( 'Mastodon OAuth scopes', 'wpis-bot-mastodon' ) )
 							),
-							DocsLinks::external_anchor( 'https://docs.joinmastodon.org/api/oauth-scopes/', __( 'Mastodon OAuth scopes', 'wpis-bot-mastodon' ) )
+							DocsLinks::external_link_allowed_tags()
 						);
 						?>
 					</p>
@@ -567,14 +577,14 @@ final class Admin {
 					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[hashtag]" id="wpis_m_tag" type="text" class="regular-text" value="<?php echo esc_attr( (string) $s['hashtag'] ); ?>" />
 					<p class="description">
 						<?php
-						printf(
-							wp_kses(
+						echo wp_kses(
+							sprintf(
 								/* translators: 1: link to hashtag explore on mastodon.social, 2: link to Mastodon hashtag help */
-								__( 'Type the tag name only, for example wordpress. Do not type a hash. On save, the value is lowercased and any character that is not a letter, number or underscore is removed. The bot fetches the public local hashtag stream, not a full-text search. If you are unsure, open your instance, search for a tag and read the part after the # in the URL. See %1$s or %2$s.', 'wpis-bot-mastodon' ),
-								DocsLinks::external_link_allowed_tags()
+								__( 'Type the tag name only, for example WordPress. Do not type a hash. On save, the value is lowercased and any character that is not a letter, number or underscore is removed. The bot fetches the public local hashtag stream, not a full-text search. If you are unsure, open your instance, search for a tag and read the part after the # in the URL. See %1$s or %2$s.', 'wpis-bot-mastodon' ),
+								DocsLinks::external_anchor( 'https://mastodon.social/explore/tags', __( 'public tags on mastodon.social', 'wpis-bot-mastodon' ) ),
+								DocsLinks::external_anchor( 'https://docs.joinmastodon.org/user/posting/#hashtags', __( 'how hashtags work in Mastodon', 'wpis-bot-mastodon' ) )
 							),
-							DocsLinks::external_anchor( 'https://mastodon.social/explore/tags', __( 'public tags on mastodon.social', 'wpis-bot-mastodon' ) ),
-							DocsLinks::external_anchor( 'https://docs.joinmastodon.org/user/posting/#hashtags', __( 'how hashtags work in Mastodon', 'wpis-bot-mastodon' ) )
+							DocsLinks::external_link_allowed_tags()
 						);
 						?>
 					</p>
@@ -586,16 +596,16 @@ final class Admin {
 					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[poll_interval_minutes]" id="wpis_m_interval" type="number" min="<?php echo (int) Settings::MIN_POLL_INTERVAL_MINUTES; ?>" max="120" value="<?php echo (int) $s['poll_interval_minutes']; ?>" />
 					<p class="description">
 						<?php
-						printf(
-							wp_kses(
+						echo wp_kses(
+							sprintf(
 								/* translators: 1: minimum minutes, 2: maximum minutes, 3: WP-Cron link, 4: Action Scheduler link */
 								__( 'Time between automatic runs. Must be between %1$d and %2$d. Smaller values ask the instance more often. The schedule uses %3$s or %4$s, depending on your site.', 'wpis-bot-mastodon' ),
-								DocsLinks::external_link_allowed_tags()
+								(int) Settings::MIN_POLL_INTERVAL_MINUTES,
+								120,
+								DocsLinks::external_anchor( 'https://developer.wordpress.org/plugins/cron/', __( 'WordPress cron', 'wpis-bot-mastodon' ) ),
+								DocsLinks::external_anchor( 'https://wordpress.org/plugins/action-scheduler/', __( 'Action Scheduler', 'wpis-bot-mastodon' ) )
 							),
-							(int) Settings::MIN_POLL_INTERVAL_MINUTES,
-							120,
-							DocsLinks::external_anchor( 'https://developer.wordpress.org/plugins/cron/', __( 'WordPress cron', 'wpis-bot-mastodon' ) ),
-							DocsLinks::external_anchor( 'https://wordpress.org/plugins/action-scheduler/', __( 'Action Scheduler', 'wpis-bot-mastodon' ) )
+							DocsLinks::external_link_allowed_tags()
 						);
 						?>
 					</p>
@@ -607,13 +617,13 @@ final class Admin {
 					<input name="<?php echo esc_attr( Settings::OPTION ); ?>[dedup_threshold]" id="wpis_m_dedup" type="number" min="0" max="100" value="<?php echo (int) $s['dedup_threshold']; ?>" />
 					<p class="description">
 						<?php
-						printf(
-							wp_kses(
+						echo wp_kses(
+							sprintf(
 								/* translators: %s: link to admin guide */
 								__( 'Passed to WPIS Core when a candidate might match an existing quote. Higher means a closer match is needed before a post is treated as a duplicate and bumped instead of a new draft. 0 to 100. See %s.', 'wpis-bot-mastodon' ),
-								DocsLinks::external_link_allowed_tags()
+								DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'guide-admin.md' ), __( 'WPIS Bots admin guide (GitHub)', 'wpis-bot-mastodon' ) )
 							),
-							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'guide-admin.md' ), __( 'WPIS Bots admin guide (GitHub)', 'wpis-bot-mastodon' ) )
+							DocsLinks::external_link_allowed_tags()
 						);
 						?>
 					</p>
@@ -625,13 +635,13 @@ final class Admin {
 					<textarea name="<?php echo esc_attr( Settings::OPTION ); ?>[keyword_patterns]" id="wpis_m_kw" class="large-text" rows="6"><?php echo esc_textarea( (string) $s['keyword_patterns'] ); ?></textarea>
 					<p class="description">
 						<?php
-						printf(
-							wp_kses(
+						echo wp_kses(
+							sprintf(
 								/* translators: %s: link to API limits doc */
 								__( 'Each line is a substring match (case-insensitive). A post that came from the hashtag must still match at least one non-empty line. If every line is empty, the code treats the match as true for all posts, so keep real patterns unless you know you want that. Pacing and quotas: %s.', 'wpis-bot-mastodon' ),
-								DocsLinks::external_link_allowed_tags()
+								DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'limites-api-et-bonnes-pratiques.md' ), __( 'API limits and good practice (GitHub)', 'wpis-bot-mastodon' ) )
 							),
-							DocsLinks::external_anchor( DocsLinks::shipped_doc_url( 'limites-api-et-bonnes-pratiques.md' ), __( 'API limits and good practice (GitHub)', 'wpis-bot-mastodon' ) )
+							DocsLinks::external_link_allowed_tags()
 						);
 						?>
 					</p>
@@ -656,13 +666,13 @@ final class Admin {
 					<p class="description">
 						<?php
 						if ( $pll_active ) {
-							printf(
-								wp_kses(
+							echo wp_kses(
+								sprintf(
 									/* translators: %s: link to Polylang language code help */
 									__( 'Set the content language slug for new drafts, for example en or fr. Leave empty to use the default in WPIS Core. Find codes under %s.', 'wpis-bot-mastodon' ),
-									DocsLinks::external_link_allowed_tags()
+									DocsLinks::external_anchor( 'https://polylang.pro/doc/how-to-find-the-language-code-in-polylang/', __( 'Polylang language codes', 'wpis-bot-mastodon' ) )
 								),
-								DocsLinks::external_anchor( 'https://polylang.pro/doc/how-to-find-the-language-code-in-polylang/', __( 'Polylang language codes', 'wpis-bot-mastodon' ) )
+								DocsLinks::external_link_allowed_tags()
 							);
 						} else {
 							esc_html_e( 'Install and activate Polylang to assign a language to drafts.', 'wpis-bot-mastodon' );
@@ -679,14 +689,14 @@ final class Admin {
 		if ( $last ) {
 			$at_last = isset( $last['at'] ) ? gmdate( 'Y-m-d H:i:s', (int) $last['at'] ) . ' UTC' : '—';
 			echo '<p class="description">';
-			printf(
-				wp_kses(
+			echo wp_kses(
+				sprintf(
 					/* translators: 1: UTC datetime of last run, 2: link to WPIS Bots run logs */
 					__( 'Last logged run: %1$s (%2$s).', 'wpis-bot-mastodon' ),
-					DocsLinks::external_link_allowed_tags()
+					esc_html( $at_last ),
+					DocsLinks::admin_anchor( admin_url( 'admin.php?page=wpis-bots-logs' ), __( 'full run log history', 'wpis-bot-mastodon' ) )
 				),
-				esc_html( $at_last ),
-				DocsLinks::admin_anchor( admin_url( 'admin.php?page=wpis-bots-logs' ), __( 'full run log history', 'wpis-bot-mastodon' ) )
+				DocsLinks::external_link_allowed_tags()
 			);
 			echo '</p>';
 		}

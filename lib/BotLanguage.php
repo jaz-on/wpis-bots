@@ -42,7 +42,7 @@ final class BotLanguage {
 			return '';
 		}
 		$valid = \pll_languages_list( array( 'fields' => 'slug' ) );
-		if ( ! \is_array( $valid ) || $valid === array() ) {
+		if ( ! \is_array( $valid ) || array() === $valid ) {
 			return '';
 		}
 		$t = \strtolower( \str_replace( '_', '-', \trim( $api_raw ) ) );

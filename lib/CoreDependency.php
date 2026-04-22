@@ -33,31 +33,31 @@ final class CoreDependency {
 		}
 		echo '<div class="notice notice-error"><p>';
 		if ( ! function_exists( 'wpis_submit_quote_candidate' ) && ! function_exists( 'wpis_find_potential_duplicates' ) ) {
-			printf(
-				wp_kses(
+			echo wp_kses(
+				sprintf(
 					/* translators: %s: link to wpis-core on GitHub */
 					__( 'WPIS Bots needs WordPress Is… Core: install and activate the wpis-core package (folder wpis-core, file wpis-core.php). Source and releases: %s.', 'wpis-bots' ),
-					DocsLinks::external_link_allowed_tags()
+					DocsLinks::external_anchor( self::WPIS_CORE_REPO, __( 'WordPress Is… Core on GitHub', 'wpis-bots' ) )
 				),
-				DocsLinks::external_anchor( self::WPIS_CORE_REPO, __( 'WordPress Is… Core on GitHub', 'wpis-bots' ) )
+				DocsLinks::external_link_allowed_tags()
 			);
 		} elseif ( ! function_exists( 'wpis_submit_quote_candidate' ) ) {
-			printf(
-				wp_kses(
+			echo wp_kses(
+				sprintf(
 					/* translators: %s: link to wpis-core on GitHub */
 					__( 'WPIS Core is incomplete: wpis_submit_quote_candidate() is missing. Update the wpis-core plugin from %s.', 'wpis-bots' ),
-					DocsLinks::external_link_allowed_tags()
+					DocsLinks::external_anchor( self::WPIS_CORE_REPO, __( 'WordPress Is… Core on GitHub', 'wpis-bots' ) )
 				),
-				DocsLinks::external_anchor( self::WPIS_CORE_REPO, __( 'WordPress Is… Core on GitHub', 'wpis-bots' ) )
+				DocsLinks::external_link_allowed_tags()
 			);
 		} else {
-			printf(
-				wp_kses(
+			echo wp_kses(
+				sprintf(
 					/* translators: %s: link to wpis-core on GitHub */
 					__( 'WPIS Core is incomplete: wpis_find_potential_duplicates() is missing. Update the wpis-core plugin from %s.', 'wpis-bots' ),
-					DocsLinks::external_link_allowed_tags()
+					DocsLinks::external_anchor( self::WPIS_CORE_REPO, __( 'WordPress Is… Core on GitHub', 'wpis-bots' ) )
 				),
-				DocsLinks::external_anchor( self::WPIS_CORE_REPO, __( 'WordPress Is… Core on GitHub', 'wpis-bots' ) )
+				DocsLinks::external_link_allowed_tags()
 			);
 		}
 		echo '</p></div>';

@@ -23,14 +23,14 @@ final class RunLogsAdmin {
 		echo '<div class="wrap"><h1>' . esc_html__( 'WPIS Bots — run logs', 'wpis-bots' ) . '</h1>';
 
 		echo '<p class="description">';
-		printf(
-			wp_kses(
+		echo wp_kses(
+			sprintf(
 				/* translators: 1: link to Mastodon bot settings, 2: link to Bluesky bot settings */
 				__( 'Configure ingestion under %1$s or %2$s.', 'wpis-bots' ),
-				DocsLinks::admin_link_allowed_tags()
+				DocsLinks::admin_anchor( admin_url( 'admin.php?page=wpis-bot-mastodon' ), __( 'WPIS Bots → Mastodon', 'wpis-bots' ) ),
+				DocsLinks::admin_anchor( admin_url( 'admin.php?page=wpis-bot-bluesky' ), __( 'WPIS Bots → Bluesky', 'wpis-bots' ) )
 			),
-			DocsLinks::admin_anchor( admin_url( 'admin.php?page=wpis-bot-mastodon' ), __( 'WPIS Bots → Mastodon', 'wpis-bots' ) ),
-			DocsLinks::admin_anchor( admin_url( 'admin.php?page=wpis-bot-bluesky' ), __( 'WPIS Bots → Bluesky', 'wpis-bots' ) )
+			DocsLinks::admin_link_allowed_tags()
 		);
 		echo '</p>';
 

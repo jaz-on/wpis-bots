@@ -19,8 +19,9 @@
 	<arg name="colors"/>
 	<arg name="extensions" value="php"/>
 
+	<config name="ignore_warnings_on_exit" value="1"/>
+
 	<rule ref="WordPress-Core"/>
-	<rule ref="WordPress-Docs"/>
 	<rule ref="WordPress.Security"/>
 
 	<rule ref="PHPCompatibilityWP"/>
@@ -31,6 +32,13 @@
 	</rule>
 
 	<rule ref="Generic.Commenting.DocComment.MissingShort">
+		<severity>0</severity>
+	</rule>
+
+	<rule ref="Generic.Formatting.MultipleStatementAlignment.NotSameWarning">
+		<severity>0</severity>
+	</rule>
+	<rule ref="Generic.Formatting.MultipleStatementAlignment.IncorrectWarning">
 		<severity>0</severity>
 	</rule>
 

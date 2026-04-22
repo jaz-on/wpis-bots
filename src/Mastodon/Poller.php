@@ -77,14 +77,14 @@ final class Poller {
 	 */
 	public static function base_stats( bool $dry_run ): array {
 		$stats = array(
-			'candidates'        => 0,
+			'candidates'       => 0,
 			'created'          => 0,
-			'bumped'            => 0,
+			'bumped'           => 0,
 			'skipped_keyword'  => 0,
 			'skipped_seen'     => 0,
 			'skipped_empty'    => 0,
 			'skipped_too_long' => 0,
-			'errors'            => array(),
+			'errors'           => array(),
 		);
 		if ( $dry_run ) {
 			$stats['dry_run']        = true;
@@ -153,12 +153,12 @@ final class Poller {
 
 			$res = QuoteIngest::process_candidate(
 				array(
-					'text'               => $text,
-					'submission_source'  => 'bot-mastodon',
-					'source_platform'    => 'mastodon',
-					'lang'               => $dedup_lang,
-					'dedup_threshold'    => (int) $settings['dedup_threshold'],
-					'source_url'         => (string) $row['url'],
+					'text'              => $text,
+					'submission_source' => 'bot-mastodon',
+					'source_platform'   => 'mastodon',
+					'lang'              => $dedup_lang,
+					'dedup_threshold'   => (int) $settings['dedup_threshold'],
+					'source_url'        => (string) $row['url'],
 					'polylang_slug'     => $pll_slug,
 					'source_language'   => $dedup_lang,
 				)

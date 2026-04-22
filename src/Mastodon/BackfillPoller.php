@@ -42,7 +42,10 @@ final class BackfillPoller {
 		$bf_patch  = array();
 
 		foreach ( $bases as $base ) {
-			$cur = $bf_state[ $base ] ?? array( 'max_id' => '', 'done' => false );
+			$cur = $bf_state[ $base ] ?? array(
+				'max_id' => '',
+				'done'   => false,
+			);
 			if ( ! empty( $cur['done'] ) ) {
 				continue;
 			}
@@ -57,7 +60,10 @@ final class BackfillPoller {
 				}
 
 				if ( array() === $items ) {
-					$bf_patch[ $base ] = array( 'max_id' => $pass_max, 'done' => true );
+					$bf_patch[ $base ] = array(
+						'max_id' => $pass_max,
+						'done'   => true,
+					);
 					break;
 				}
 
@@ -66,12 +72,18 @@ final class BackfillPoller {
 				$lowest = $batch['lowest_id'];
 
 				if ( '' === $lowest ) {
-					$bf_patch[ $base ] = array( 'max_id' => $pass_max, 'done' => true );
+					$bf_patch[ $base ] = array(
+						'max_id' => $pass_max,
+						'done'   => true,
+					);
 					break;
 				}
 
 				$pass_max          = $lowest;
-				$bf_patch[ $base ] = array( 'max_id' => $pass_max, 'done' => false );
+				$bf_patch[ $base ] = array(
+					'max_id' => $pass_max,
+					'done'   => false,
+				);
 			}
 		}
 

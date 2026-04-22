@@ -42,15 +42,15 @@ final class Poller {
 		if ( ! $dry_run ) {
 			if ( get_transient( self::LOCK_KEY ) ) {
 				return array(
-					'candidates'         => 0,
-					'created'            => 0,
-					'bumped'             => 0,
-					'skipped_keyword'    => 0,
-					'skipped_seen'       => 0,
-					'skipped_empty'      => 0,
-					'skipped_too_long'   => 0,
-					'errors'             => array( __( 'Another Bluesky poller is already running. Try again in a few seconds.', 'wpis-bot-bluesky' ) ),
-					'source'            => 1 < $max_pages ? 'bluesky-backfill' : 'bluesky',
+					'candidates'       => 0,
+					'created'          => 0,
+					'bumped'           => 0,
+					'skipped_keyword'  => 0,
+					'skipped_seen'     => 0,
+					'skipped_empty'    => 0,
+					'skipped_too_long' => 0,
+					'errors'           => array( __( 'Another Bluesky poller is already running. Try again in a few seconds.', 'wpis-bot-bluesky' ) ),
+					'source'           => 1 < $max_pages ? 'bluesky-backfill' : 'bluesky',
 				);
 			}
 			set_transient( self::LOCK_KEY, 1, 60 );
@@ -154,14 +154,14 @@ final class Poller {
 	 */
 	public static function base_stats( bool $dry_run ): array {
 		$stats = array(
-			'candidates'         => 0,
-			'created'            => 0,
-			'bumped'             => 0,
-			'skipped_keyword'    => 0,
-			'skipped_seen'       => 0,
-			'skipped_empty'      => 0,
-			'skipped_too_long'   => 0,
-			'errors'             => array(),
+			'candidates'       => 0,
+			'created'          => 0,
+			'bumped'           => 0,
+			'skipped_keyword'  => 0,
+			'skipped_seen'     => 0,
+			'skipped_empty'    => 0,
+			'skipped_too_long' => 0,
+			'errors'           => array(),
 		);
 		if ( $dry_run ) {
 			$stats['dry_run']       = true;
@@ -205,7 +205,7 @@ final class Poller {
 				$url = BlueskyClient::uri_to_web_url( $rid );
 			}
 
-			$api_lang   = '';
+			$api_lang = '';
 			if ( ! empty( $row['source_langs'] ) && is_array( $row['source_langs'] ) ) {
 				$api_lang = (string) ( $row['source_langs'][0] ?? '' );
 			}
