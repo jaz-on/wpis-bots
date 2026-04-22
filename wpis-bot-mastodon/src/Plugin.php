@@ -23,20 +23,22 @@ final class Plugin {
 	 * Ensure wpis-plugin is loaded; surface an admin notice otherwise.
 	 */
 	public function bootstrap(): void {
-		if ( function_exists( 'wpis_find_potential_duplicates' ) ) {
+		if ( ! function_exists( 'wpis_find_potential_duplicates' ) ) {
+			add_action(
+				'admin_notices',
+				static function () {
+					echo '<div class="notice notice-error"><p>';
+					esc_html_e(
+						'WPIS Bot (Mastodon) requires the WPIS Core plugin. Install and activate wpis-plugin.',
+						'wpis-bot-mastodon'
+					);
+					echo '</p></div>';
+				}
+			);
 			return;
 		}
 
-		add_action(
-			'admin_notices',
-			static function () {
-				echo '<div class="notice notice-error"><p>';
-				esc_html_e(
-					'WPIS Bot (Mastodon) requires the WPIS Core plugin. Install and activate wpis-plugin.',
-					'wpis-bot-mastodon'
-				);
-				echo '</p></div>';
-			}
-		);
+		Scheduler::register_hooks();
+		Admin::register();
 	}
 }

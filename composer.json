@@ -1,0 +1,20 @@
+{
+	"name": "jaz-on/wpis-bots",
+	"description": "Meta package for WPIS social bots: dev tools and tests",
+	"license": "GPL-2.0-or-later",
+	"type": "project",
+	"require": {
+		"php": "^8.2"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^10.5"
+	},
+	"config": {
+		"platform": {
+			"php": "8.2"
+		}
+	},
+	"scripts": {
+		"test": "phpunit -c phpunit.xml"
+	}
+}

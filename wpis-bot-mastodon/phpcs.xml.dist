@@ -3,13 +3,16 @@
 	<description>PHPCS for wpis-bot-mastodon</description>
 
 	<file>.</file>
+	<file>../lib</file>
 	<exclude-pattern>*/vendor/*</exclude-pattern>
 
 	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
 		<exclude-pattern>*/src/*</exclude-pattern>
+		<exclude-pattern>*/lib/*</exclude-pattern>
 	</rule>
 	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
 		<exclude-pattern>*/src/*</exclude-pattern>
+		<exclude-pattern>*/lib/*</exclude-pattern>
 	</rule>
 
 	<arg value="ps"/>
