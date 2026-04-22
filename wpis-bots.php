@@ -37,6 +37,7 @@ require_once WPIS_BOTS_LIB_DIR . '/ActionSchedulerBootstrap.php';
 \WPIS\Bots\ActionSchedulerBootstrap::load();
 
 require_once WPIS_BOTS_LIB_DIR . '/BotsAdminMenu.php';
+require_once WPIS_BOTS_LIB_DIR . '/CoreDependency.php';
 require_once WPIS_BOTS_LIB_DIR . '/DocsLinks.php';
 require_once WPIS_BOTS_LIB_DIR . '/HttpRateContext.php';
 require_once WPIS_BOTS_LIB_DIR . '/TextHelper.php';
@@ -91,6 +92,14 @@ if ( ! class_exists( '\WPIS\BotMastodon\Plugin', true ) || ! class_exists( '\WPI
 		}
 	);
 } else {
+	// Sidebar menu must register even if WPIS Core loads later — see Plugin::bootstrap().
+	add_action(
+		'plugins_loaded',
+		static function () {
+			\WPIS\Bots\BotsAdminMenu::register();
+		},
+		1
+	);
 	( new \WPIS\BotMastodon\Plugin() )->register();
 	( new \WPIS\BotBluesky\Plugin() )->register();
 }

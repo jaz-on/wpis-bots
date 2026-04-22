@@ -7,6 +7,7 @@
 
 namespace WPIS\BotBluesky;
 
+use WPIS\Bots\CoreDependency;
 use WPIS\Bots\DocsLinks;
 
 /**
@@ -118,6 +119,11 @@ final class Admin {
 		}
 
 		echo '<div class="wrap"><h1>' . esc_html__( 'WPIS Bluesky Bot', 'wpis-bot-bluesky' ) . '</h1>';
+		if ( CoreDependency::block_if_core_missing() ) {
+			echo '</div>';
+			return;
+		}
+
 		DocsLinks::render_bluesky_intro();
 		echo '<form method="post" action="options.php">';
 		settings_fields( 'wpis_bot_bluesky' );

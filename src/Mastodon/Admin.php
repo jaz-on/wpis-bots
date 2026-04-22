@@ -7,6 +7,7 @@
 
 namespace WPIS\BotMastodon;
 
+use WPIS\Bots\CoreDependency;
 use WPIS\Bots\DocsLinks;
 
 /**
@@ -111,12 +112,17 @@ final class Admin {
 			return;
 		}
 
+		echo '<div class="wrap"><h1>' . esc_html__( 'WPIS Mastodon Bot', 'wpis-bot-mastodon' ) . '</h1>';
+		if ( CoreDependency::block_if_core_missing() ) {
+			echo '</div>';
+			return;
+		}
+
 		$log = get_option( Settings::LOG_OPTION, array() );
 		if ( ! is_array( $log ) ) {
 			$log = array();
 		}
 
-		echo '<div class="wrap"><h1>' . esc_html__( 'WPIS Mastodon Bot', 'wpis-bot-mastodon' ) . '</h1>';
 		DocsLinks::render_mastodon_intro();
 		echo '<form method="post" action="options.php">';
 		settings_fields( 'wpis_bot_mastodon' );
