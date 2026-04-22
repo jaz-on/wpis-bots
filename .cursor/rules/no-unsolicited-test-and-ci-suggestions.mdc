@@ -1,0 +1,22 @@
+---
+description: No unsolicited test automation, CI or local-env setup; remote validation only unless user asks
+alwaysApply: true
+---
+
+# Tests, CI and local environment: do not nag
+
+The user does **not** want offers or follow-ups about automation and tests unless they **explicitly** ask for that work.
+
+**Do not** propose, suggest as a “next step”, or volunteer to add or document:
+
+- PHPUnit, WordPress test suite, `install-wp-tests.sh`, `WP_TESTS_DIR`, `composer test`
+- GitHub Actions or other CI for tests or lint
+- Expanding test coverage, new test files, or “run the test suite”
+- Pre-commit hooks for tests or quality gates
+- Setting up a local PHP/MySQL/WordPress stack for development
+
+**Assume** day-to-day validation happens on the **remote** site (e.g. `wpis.jasonrouet.com`). Do not assume a local dev environment exists or should exist.
+
+**When** the user asks for tests, CI or local setup, implement or document only what they asked for—still no extra unprompted layers.
+
+**Do not** close answers with generic offers like “Say if you want tests/CI” unless they actually asked about that topic.
